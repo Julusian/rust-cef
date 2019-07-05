@@ -61,7 +61,7 @@ impl<'a> Default for Settings<'a> {
             uncaught_exception_stack_size: None,
             ignore_certificate_errors: false,
             enable_net_security_expiration: false,
-            background_color: 0x00000000,
+            background_color: 0x0000_0000,
             accept_language_list: None,
             application_client_id_for_file_scanning: None,
         }

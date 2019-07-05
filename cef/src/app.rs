@@ -1,4 +1,4 @@
-use crate::ptr::{wrap_ptr, BaseRefCountedExt, WrapperFor};
+use crate::ptr::{wrap_ptr, BaseRefCountedExt, RefCounterGuard, WrapperFor};
 use crate::string::CefString;
 use crate::ToCef;
 use cef_sys::{
@@ -25,7 +25,7 @@ struct AppWrapper<TApp: App> {
 unsafe impl<TApp: App> WrapperFor<cef_app_t> for AppWrapper<TApp> {}
 impl<TApp: App> AppWrapper<TApp> {
     fn from_ptr<'a>(ptr: *mut cef_app_t) -> &'a mut BaseRefCountedExt<cef_app_t, AppWrapper<TApp>> {
-        unsafe { std::mem::transmute(ptr) }
+        unsafe { &mut *(ptr as *mut _) }
     }
     extern "C" fn on_before_command_line_processing(
         app: *mut cef_app_t,
@@ -91,37 +91,21 @@ impl<TApp: App> ToCef<cef_app_t> for Arc<TApp> {
 }
 
 pub struct CommandLine {
-    ptr: *mut cef_command_line_t,
-    track_ref: bool,
-}
-impl Drop for CommandLine {
-    fn drop(&mut self) {
-        if self.track_ref {
-            unsafe {
-                if let Some(release) = (*self.ptr).base.release {
-                    release(&mut (*self.ptr).base);
-                }
-            }
-        }
-    }
+    ptr: RefCounterGuard<cef_command_line_t>,
 }
 impl CommandLine {
     pub(crate) fn from(ptr: *mut cef_command_line_t, track_ref: bool) -> CommandLine {
-        if track_ref {
-            unsafe {
-                // Let CEF know we are passing it around
-                if let Some(add_ref) = (*ptr).base.add_ref {
-                    add_ref(&mut (*ptr).base);
-                }
+        unsafe {
+            CommandLine {
+                ptr: RefCounterGuard::from(&mut (*ptr).base, ptr, track_ref),
             }
         }
-        CommandLine { ptr, track_ref }
     }
 
     pub fn is_valid(&self) -> bool {
         unsafe {
-            if let Some(is_valid) = (*self.ptr).is_valid {
-                is_valid(&mut (*self.ptr)) > 0
+            if let Some(is_valid) = self.ptr.as_ref().is_valid {
+                is_valid(self.ptr.get()) > 0
             } else {
                 false
             }
@@ -130,8 +114,8 @@ impl CommandLine {
 
     pub fn is_read_only(&self) -> bool {
         unsafe {
-            if let Some(is_read_only) = (*self.ptr).is_read_only {
-                is_read_only(&mut (*self.ptr)) > 0
+            if let Some(is_read_only) = self.ptr.as_ref().is_read_only {
+                is_read_only(self.ptr.get()) > 0
             } else {
                 false
             }

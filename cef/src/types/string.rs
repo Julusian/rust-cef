@@ -1,5 +1,4 @@
 use cef_sys::cef_string_utf16_t;
-use std::ptr::{null, null_mut};
 use widestring::U16CString;
 
 pub(crate) type CefString = CefStringUTF16;
@@ -13,7 +12,7 @@ impl CefStringUTF16 {
         }
     }
     pub fn from_cef(ptr: *const cef_string_utf16_t) -> CefStringUTF16 {
-        if ptr == null() {
+        if ptr.is_null() {
             CefStringUTF16 {
                 str: U16CString::from_str("").unwrap(),
             }
@@ -29,7 +28,7 @@ impl CefStringUTF16 {
     }
     pub fn into_cef(self) -> cef_string_utf16_t {
         extern "C" fn free_str(ptr: *mut u16) {
-            if ptr == null_mut() {
+            if ptr.is_null() {
                 return;
             }
             // TODO - what about the cef_string_utf16_t wrapper?

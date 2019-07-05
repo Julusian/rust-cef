@@ -125,7 +125,7 @@ impl<'a> Default for BrowserSettings<'a> {
             databases: None,
             application_cache: None,
             webgl: None,
-            background_color: 0x00000000,
+            background_color: 0x0000_0000,
             accept_language_list: None,
         }
     }

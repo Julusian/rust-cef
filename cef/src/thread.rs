@@ -47,7 +47,7 @@ pub struct TaskWrapper<F: FnOnce() -> ()> {
 unsafe impl<F: FnOnce() -> ()> WrapperFor<cef_task_t> for TaskWrapper<F> {}
 impl<F: FnOnce() -> ()> TaskWrapper<F> {
     fn from_ptr<'a>(ptr: *mut cef_task_t) -> &'a mut BaseRefCountedExt<cef_task_t, TaskWrapper<F>> {
-        unsafe { std::mem::transmute(ptr) }
+        unsafe { &mut *(ptr as *mut _) }
     }
 
     extern "C" fn execute(task: *mut cef_task_t) {

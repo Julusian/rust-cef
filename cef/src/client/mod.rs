@@ -1,3 +1,7 @@
+mod render_handler;
+
+pub use render_handler::*;
+
 use crate::ptr::{wrap_ptr, BaseRefCountedExt, WrapperFor};
 use crate::ToCef;
 use cef_sys::{
@@ -13,12 +17,19 @@ use std::sync::Arc;
 pub trait AudioHandler {
     //
 }
+impl AudioHandler for () {}
 
 pub trait Client {
-    fn get_audio_handler(&self) -> Option<Arc<AudioHandler>> {
+    type OutAudioHandler: AudioHandler;
+    type OutRenderHandler: RenderHandler;
+
+    fn get_audio_handler(&self) -> Option<Arc<Self::OutAudioHandler>> {
         None
     }
     // TODO - fill out
+    fn get_render_handler(&self) -> Option<Arc<Self::OutRenderHandler>> {
+        None
+    }
 }
 
 struct ClientWrapper<T: Client> {
@@ -30,17 +41,11 @@ impl<T: Client> ClientWrapper<T> {
     fn from_ptr<'a>(
         ptr: *mut cef_client_t,
     ) -> &'a mut BaseRefCountedExt<cef_client_t, ClientWrapper<T>> {
-        unsafe { std::mem::transmute(ptr) }
+        unsafe { &mut *(ptr as *mut _) }
     }
 
     extern "C" fn get_audio_handler(client: *mut cef_client_t) -> *mut cef_audio_handler_t {
-        let client = Self::from_ptr(client);
-        if let Some(_handler) = client.internal.get_audio_handler() {
-            // TODO
-            null_mut()
-        } else {
-            null_mut()
-        }
+        null_mut()
     }
 
     extern "C" fn get_context_menu_handler(
@@ -91,8 +96,13 @@ impl<T: Client> ClientWrapper<T> {
         null_mut()
     }
 
-    extern "C" fn get_render_handler(_client: *mut cef_client_t) -> *mut cef_render_handler_t {
-        null_mut()
+    extern "C" fn get_render_handler(client: *mut cef_client_t) -> *mut cef_render_handler_t {
+        let client = Self::from_ptr(client);
+        if let Some(handler) = client.internal.get_render_handler() {
+            handler.to_cef()
+        } else {
+            null_mut()
+        }
     }
 
     extern "C" fn get_request_handler(_client: *mut cef_client_t) -> *mut cef_request_handler_t {

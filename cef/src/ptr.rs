@@ -5,6 +5,66 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 pub(crate) unsafe trait WrapperFor<T> {}
 
+pub(crate) struct RefCounterGuard<T> {
+    // TODO - test this type
+    base: *mut cef_base_ref_counted_t,
+    val: *mut T,
+    track_ref: bool,
+}
+impl<T> Deref for RefCounterGuard<T> {
+    type Target = *mut T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.val
+    }
+}
+impl<T> DerefMut for RefCounterGuard<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.val
+    }
+}
+impl<T> Drop for RefCounterGuard<T> {
+    fn drop(&mut self) {
+        if self.track_ref && !self.base.is_null() {
+            unsafe {
+                let base = &mut *self.base;
+                if let Some(release) = base.release {
+                    release(base);
+                }
+            }
+        }
+    }
+}
+impl<T> RefCounterGuard<T> {
+    pub(crate) fn from(
+        base: *mut cef_base_ref_counted_t,
+        val: *mut T,
+        track_ref: bool,
+    ) -> RefCounterGuard<T> {
+        if track_ref && !base.is_null() {
+            unsafe {
+                let base = &mut *base;
+                // Let CEF know we are passing it around
+                if let Some(add_ref) = base.add_ref {
+                    add_ref(base);
+                }
+            }
+        }
+
+        RefCounterGuard {
+            base,
+            val,
+            track_ref,
+        }
+    }
+    pub fn get(&self) -> *mut T {
+        self.val
+    }
+    pub fn as_ref(&self) -> &mut T {
+        unsafe { &mut *self.val }
+    }
+}
+
 // This relies on the c storage structure to allow casting a *_cef_base_ref_counted_t into a pointer of this type which starts with _cef_base_ref_counted_t
 #[repr(C)]
 pub(crate) struct BaseRefCountedExt<TCef, TWrapper> {
@@ -40,11 +100,11 @@ impl<TCef, TWrapper: WrapperFor<TCef>> BaseRefCountedExt<TCef, TWrapper> {
             count: AtomicUsize::new(1),
             phantom: PhantomData,
         };
-        unsafe { std::mem::transmute(Box::into_raw(Box::new(base))) }
+        unsafe { Box::into_raw(Box::new(base)) as *mut TCef }
     }
 
     fn from_ptr<'a>(ptr: *mut cef_base_ref_counted_t) -> &'a mut BaseRefCountedExt<TCef, TWrapper> {
-        unsafe { std::mem::transmute(ptr) }
+        unsafe { &mut *(ptr as *mut _) }
     }
     extern "C" fn add_ref(ptr: *mut cef_base_ref_counted_t) {
         let base = Self::from_ptr(ptr);

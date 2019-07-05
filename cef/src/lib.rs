@@ -1,15 +1,19 @@
+#![feature(non_exhaustive)]
+
 extern crate cef_sys;
 
 mod app;
+mod browser;
 mod client;
 mod ptr;
 mod settings;
-mod string;
 mod thread;
+mod types;
 mod window;
 
-use crate::string::CefString;
+use crate::types::string::CefString;
 pub use app::*;
+pub use browser::*;
 pub use client::*;
 pub use settings::*;
 use std::ffi::CString;
@@ -17,6 +21,7 @@ use std::os::raw::c_char;
 use std::ptr::null_mut;
 use std::sync::Arc;
 pub use thread::*;
+pub use types::*;
 pub use window::*;
 
 pub(crate) trait ToCef<T> {
@@ -24,7 +29,7 @@ pub(crate) trait ToCef<T> {
 }
 
 pub fn execute_process<TApp: App>(
-    args: &Vec<String>,
+    args: &[String],
     application: &Arc<TApp>,
     //    windows_sandbox_info: *mut ::std::os::raw::c_void,
 ) -> i32 {
@@ -42,7 +47,7 @@ pub fn execute_process<TApp: App>(
 }
 
 pub fn initialize<TApp: App>(
-    args: &Vec<String>,
+    args: &[String],
     settings: Settings,
     application: &Arc<TApp>,
     //    application: *mut cef_sys::cef_app_t,
