@@ -48,7 +48,7 @@
 #include "include/capi/cef_resource_handler_capi.h"
 #include "include/capi/cef_response_capi.h"
 #include "include/capi/cef_response_filter_capi.h"
-#include "include/internal/cef_types_wrappers.h"
+// #include "include/internal/cef_types_wrappers.h"
 
 #ifdef __cplusplus
 extern "C" {
