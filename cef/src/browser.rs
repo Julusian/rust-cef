@@ -1,4 +1,6 @@
 use crate::ptr::RefCounterGuard;
+use crate::types::string::CefString;
+use crate::Frame;
 use cef_sys::{cef_browser_host_t, cef_browser_t, cef_frame_t, cef_string_list_t, cef_string_t};
 use std::ptr::null_mut;
 
@@ -108,24 +110,57 @@ impl Browser {
         }
     }
 
-    pub fn get_main_frame(&self) -> *mut cef_frame_t {
-        // TODO
-        null_mut()
+    pub fn get_main_frame(&self) -> Option<Frame> {
+        if let Some(func) = self.ptr.as_ref().get_main_frame {
+            let ptr = unsafe { func(self.ptr.get()) };
+            if !ptr.is_null() {
+                Some(Frame::from(ptr, true))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     }
 
-    pub fn get_focused_frame(&self) -> *mut cef_frame_t {
-        // TODO
-        null_mut()
+    pub fn get_focused_frame(&self) -> Option<Frame> {
+        if let Some(func) = self.ptr.as_ref().get_focused_frame {
+            let ptr = unsafe { func(self.ptr.get()) };
+            if !ptr.is_null() {
+                Some(Frame::from(ptr, true))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     }
 
-    pub fn get_frame_byident(&self, _identifier: i64) -> *mut cef_frame_t {
-        // TODO
-        null_mut()
+    pub fn get_frame_byident(&self, identifier: i64) -> Option<Frame> {
+        if let Some(func) = self.ptr.as_ref().get_frame_byident {
+            let ptr = unsafe { func(self.ptr.get(), identifier) };
+            if !ptr.is_null() {
+                Some(Frame::from(ptr, true))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     }
 
-    pub fn get_frame(&self, _name: *const cef_string_t) -> *mut cef_frame_t {
-        // TODO
-        null_mut()
+    pub fn get_frame(&self, name: &str) -> Option<Frame> {
+        if let Some(func) = self.ptr.as_ref().get_frame {
+            let name = CefString::from_str(name);
+            let ptr = unsafe { func(self.ptr.get(), &name.into_cef()) };
+            if !ptr.is_null() {
+                Some(Frame::from(ptr, true))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     }
 
     pub fn get_frame_count(&self) -> usize {

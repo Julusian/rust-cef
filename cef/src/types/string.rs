@@ -26,6 +26,13 @@ impl CefStringUTF16 {
             }
         }
     }
+    pub fn from_userfree_cef(ptr: *mut cef_string_utf16_t) -> CefStringUTF16 {
+        let res = Self::from_cef(ptr);
+        unsafe {
+            cef_sys::cef_string_userfree_utf16_free(ptr);
+        }
+        res
+    }
     pub fn into_cef(self) -> cef_string_utf16_t {
         extern "C" fn free_str(ptr: *mut u16) {
             if ptr.is_null() {

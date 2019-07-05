@@ -35,21 +35,32 @@ impl<T> Drop for RefCounterGuard<T> {
         }
     }
 }
+impl<T> Clone for RefCounterGuard<T> {
+    fn clone(&self) -> Self {
+        let res = Self {
+            base: self.base,
+            val: self.val,
+            track_ref: true,
+        };
+        unsafe { res.add_ref() };
+        res
+    }
+}
 impl<T> RefCounterGuard<T> {
     pub(crate) fn from(
         base: *mut cef_base_ref_counted_t,
         val: *mut T,
         track_ref: bool,
     ) -> RefCounterGuard<T> {
-        if track_ref && !base.is_null() {
-            unsafe {
-                let base = &mut *base;
-                // Let CEF know we are passing it around
-                if let Some(add_ref) = base.add_ref {
-                    add_ref(base);
-                }
-            }
-        }
+        //        if track_ref && !base.is_null() {
+        //            unsafe {
+        //                let base = &mut *base;
+        //                // Let CEF know we are passing it around
+        //                if let Some(add_ref) = base.add_ref {
+        //                    add_ref(base);
+        //                }
+        //            }
+        //        }
 
         RefCounterGuard {
             base,
@@ -62,6 +73,15 @@ impl<T> RefCounterGuard<T> {
     }
     pub fn as_ref(&self) -> &mut T {
         unsafe { &mut *self.val }
+    }
+
+    pub unsafe fn add_ref(&self) {
+        if !self.base.is_null() {
+            let base = &mut *self.base;
+            if let Some(add_ref) = base.add_ref {
+                add_ref(base);
+            }
+        }
     }
 }
 

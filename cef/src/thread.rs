@@ -2,6 +2,7 @@ use crate::ptr::{wrap_ptr, BaseRefCountedExt, WrapperFor};
 use cef_sys::{cef_currently_on, cef_post_task, cef_task_t};
 
 #[derive(Copy, Clone, Debug)]
+#[non_exhaustive]
 pub enum ThreadId {
     UI = cef_sys::cef_thread_id_t_TID_UI as isize,
     FileBackground = cef_sys::cef_thread_id_t_TID_FILE_BACKGROUND as isize,
@@ -19,8 +20,9 @@ pub fn currently_on(id: ThreadId) -> bool {
 
 pub fn post_task<F: FnOnce() -> ()>(id: ThreadId, func: F) -> Result<(), bool> {
     if currently_on(id) {
-        // TODO - execute now
-
+        // Execute it now
+        func();
+        return Ok(());
     }
 
     let task = wrap_ptr(move |base| TaskWrapper {
@@ -31,7 +33,6 @@ pub fn post_task<F: FnOnce() -> ()>(id: ThreadId, func: F) -> Result<(), bool> {
         func: Some(func),
     });
 
-    // TODO
     let ok = unsafe { cef_post_task(id as u32, task) };
     if ok > 0 {
         Ok(())

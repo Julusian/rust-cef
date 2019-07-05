@@ -1,10 +1,13 @@
-use crate::ptr::{wrap_ptr, BaseRefCountedExt, RefCounterGuard, WrapperFor};
+mod command_line;
+
+use crate::ptr::{wrap_ptr, BaseRefCountedExt, WrapperFor};
 use crate::string::CefString;
 use crate::ToCef;
 use cef_sys::{
     cef_app_t, cef_browser_process_handler_t, cef_command_line_t, cef_render_process_handler_t,
     cef_resource_bundle_handler_t, cef_scheme_registrar_t, cef_string_t,
 };
+pub use command_line::*;
 use std::ptr::null_mut;
 use std::sync::Arc;
 
@@ -88,39 +91,4 @@ impl<TApp: App> ToCef<cef_app_t> for Arc<TApp> {
             internal: self.clone(),
         })
     }
-}
-
-pub struct CommandLine {
-    ptr: RefCounterGuard<cef_command_line_t>,
-}
-impl CommandLine {
-    pub(crate) fn from(ptr: *mut cef_command_line_t, track_ref: bool) -> CommandLine {
-        unsafe {
-            CommandLine {
-                ptr: RefCounterGuard::from(&mut (*ptr).base, ptr, track_ref),
-            }
-        }
-    }
-
-    pub fn is_valid(&self) -> bool {
-        unsafe {
-            if let Some(is_valid) = self.ptr.as_ref().is_valid {
-                is_valid(self.ptr.get()) > 0
-            } else {
-                false
-            }
-        }
-    }
-
-    pub fn is_read_only(&self) -> bool {
-        unsafe {
-            if let Some(is_read_only) = self.ptr.as_ref().is_read_only {
-                is_read_only(self.ptr.get()) > 0
-            } else {
-                false
-            }
-        }
-    }
-
-    // TODO - fill out remaining
 }
