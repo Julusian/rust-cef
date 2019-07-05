@@ -1,20 +1,31 @@
 use cef_sys::{_cef_base_ref_counted_t, cef_base_ref_counted_t};
-use std::intrinsics::transmute;
+use std::marker::PhantomData;
+use std::ops::Deref;
 use std::sync::atomic::{AtomicUsize, Ordering};
+
+pub(crate) unsafe trait WrapperFor<T> {}
 
 // This relies on the c storage structure to allow casting a *_cef_base_ref_counted_t into a pointer of this type which starts with _cef_base_ref_counted_t
 #[repr(C)]
-struct BaseRefCountedExt<T> {
-    v: T,
+pub(crate) struct BaseRefCountedExt<TCef, TWrapper> {
+    v: TWrapper,
     count: AtomicUsize,
+    phantom: PhantomData<TCef>,
 }
-impl<T> BaseRefCountedExt<T> {
-    fn new<F>(wrap: F) -> *mut T
+impl<TCef, TWrapper> Deref for BaseRefCountedExt<TCef, TWrapper> {
+    type Target = TWrapper;
+
+    fn deref(&self) -> &Self::Target {
+        &self.v
+    }
+}
+impl<TCef, TWrapper: WrapperFor<TCef>> BaseRefCountedExt<TCef, TWrapper> {
+    fn wrap_ptr<F>(wrapper: F) -> *mut TCef
     where
-        F: Fn(cef_base_ref_counted_t) -> T,
+        F: Fn(cef_base_ref_counted_t) -> TWrapper,
     {
-        let base = BaseRefCountedExt {
-            v: wrap(_cef_base_ref_counted_t {
+        let base = BaseRefCountedExt::<TCef, TWrapper> {
+            v: wrapper(_cef_base_ref_counted_t {
                 size: std::mem::size_of::<Self>(),
                 add_ref: Some(Self::add_ref),
                 release: Some(Self::release),
@@ -22,12 +33,13 @@ impl<T> BaseRefCountedExt<T> {
                 has_at_least_one_ref: Some(Self::has_at_least_one_ref),
             }),
             count: AtomicUsize::new(1),
+            phantom: PhantomData,
         };
-        unsafe { transmute(Box::into_raw(Box::new(base))) }
+        unsafe { std::mem::transmute(Box::into_raw(Box::new(base))) }
     }
 
-    fn from_ptr<'a>(ptr: *mut cef_base_ref_counted_t) -> &'a mut BaseRefCountedExt<T> {
-        unsafe { transmute(ptr) }
+    fn from_ptr<'a>(ptr: *mut cef_base_ref_counted_t) -> &'a mut BaseRefCountedExt<TCef, TWrapper> {
+        unsafe { std::mem::transmute(ptr) }
     }
     extern "C" fn add_ref(ptr: *mut cef_base_ref_counted_t) {
         let base = Self::from_ptr(ptr);
@@ -65,9 +77,10 @@ impl<T> BaseRefCountedExt<T> {
     }
 }
 
-pub fn wrap_ptr<T, F>(wrap: F) -> *mut T
+pub(crate) fn wrap_ptr<TCef, TWrapper, F>(wrapper: F) -> *mut TCef
 where
-    F: Fn(cef_base_ref_counted_t) -> T,
+    F: Fn(cef_base_ref_counted_t) -> TWrapper,
+    TWrapper: WrapperFor<TCef>,
 {
-    BaseRefCountedExt::new(wrap)
+    BaseRefCountedExt::wrap_ptr(wrapper)
 }

@@ -1,18 +1,33 @@
 use cef_sys::cef_string_utf16_t;
-use std::ptr::null_mut;
+use std::ptr::{null, null_mut};
 use widestring::U16CString;
 
-pub type CefString = CefStringUTF16;
-pub struct CefStringUTF16 {
+pub(crate) type CefString = CefStringUTF16;
+pub(crate) struct CefStringUTF16 {
     str: U16CString,
 }
 impl CefStringUTF16 {
-    pub fn from_str(str: &str) -> Self {
+    pub fn from_str(s: &str) -> Self {
         Self {
-            str: U16CString::from_str(str).unwrap(), // TODO error safety
+            str: U16CString::from_str(s).unwrap(), // TODO error safety
         }
     }
-    pub(crate) fn into_cef(self) -> cef_string_utf16_t {
+    pub fn from_cef(ptr: *const cef_string_utf16_t) -> CefStringUTF16 {
+        if ptr == null() {
+            CefStringUTF16 {
+                str: U16CString::from_str("").unwrap(),
+            }
+        } else {
+            // It's a pointer, so CEF retains ownership and will call the dtor
+
+            unsafe {
+                CefStringUTF16 {
+                    str: U16CString::from_ptr((*ptr).str, (*ptr).length).unwrap(), // TODO error safety
+                }
+            }
+        }
+    }
+    pub fn into_cef(self) -> cef_string_utf16_t {
         extern "C" fn free_str(ptr: *mut u16) {
             if ptr == null_mut() {
                 return;
@@ -29,5 +44,10 @@ impl CefStringUTF16 {
             str: self.str.into_raw(),
             dtor: Some(free_str),
         }
+    }
+}
+impl ToString for CefStringUTF16 {
+    fn to_string(&self) -> String {
+        self.str.to_string_lossy()
     }
 }
