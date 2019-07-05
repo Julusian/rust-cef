@@ -1,7 +1,5 @@
 use cef_sys::cef_string_utf16_t;
-use std::ffi::CString;
 use std::ptr::null_mut;
-use std::sync::Arc;
 use widestring::U16CString;
 
 pub type CefString = CefStringUTF16;

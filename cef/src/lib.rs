@@ -1,41 +1,43 @@
 extern crate cef_sys;
 
+mod app;
+mod ptr;
 mod settings;
 mod string;
 
-use cef_sys::{cef_app_t, cef_command_line_t, cef_settings_t, cef_string_t};
+pub use app::*;
 pub use settings::*;
 use std::ffi::CString;
-use std::os::raw::{c_char, c_int};
+use std::os::raw::c_char;
 use std::ptr::null_mut;
 use std::sync::Arc;
-use string::CefString;
 
-pub trait App {
-    fn on_before_command_line_processing(&self); // TODO - proper type
+pub(crate) trait ToCef<T> {
+    fn to_cef(&self) -> *mut T;
 }
 
-//fn create_cef_app<TApp: App>(application: Option<TApp>) {
-//    extern "C" fn on_before_command_line_processing(
-//        self_: *mut cef_app_t,
-//        process_type: *const cef_string_t,
-//        command_line: *mut cef_command_line_t,
-//    ) {
-//        //
+//pub struct CefRc<T> {
+//    ptr: *const T, // TODO - type?
+//}
+//impl<T> Deref for CefRc<T> {
+//    type Target = T;
+//
+//    fn deref(&self) -> &Self::Target {
+//        unsafe { &*self.ptr }
 //    }
-//    let app = cef_app_t {
-//        base: _cef_base_ref_counted_t {},
-//        on_before_command_line_processing: Some(on_before_command_line_processing),
-//        on_register_custom_schemes: None,
-//        get_resource_bundle_handler: None,
-//        get_browser_process_handler: None,
-//        get_render_process_handler: None,
-//    };
+//}
+//impl<T> CefRc<T> {
+//    pub fn wrap(ptr: Arc<T>) {}
+//    //    pub fn new(ptr: *T) {
+//    //        if ptr != null() {
+//    //            ptr->AddRef();
+//    //        }
+//    //    }
 //}
 
-pub fn execute_process(
+pub fn execute_process<TApp: App>(
     args: &Vec<String>,
-    //    application: *mut cef_app_t,
+    application: &Arc<TApp>,
     //    windows_sandbox_info: *mut ::std::os::raw::c_void,
 ) -> i32 {
     let args: Vec<CString> = args
@@ -48,15 +50,13 @@ pub fn execute_process(
         argv: args2.as_mut_ptr(),
     };
 
-    let mut app = null_mut();
-
-    unsafe { cef_sys::cef_execute_process(&args3, app, null_mut()) }
+    unsafe { cef_sys::cef_execute_process(&args3, application.to_cef(), null_mut()) }
 }
 
-pub fn initialize(
+pub fn initialize<TApp: App>(
     args: &Vec<String>,
     settings: Settings,
-    //    application: Option<TApp>,
+    application: &Arc<TApp>,
     //    application: *mut cef_sys::cef_app_t,
     //    windows_sandbox_info: *mut ::std::os::raw::c_void,
 ) -> ::std::os::raw::c_int {
@@ -70,19 +70,7 @@ pub fn initialize(
         argv: args2.as_mut_ptr(),
     };
 
-    let settings2 = settings.to_cef();
-    //
-    //    let app = cef_app_t {
-    //        base: _cef_base_ref_counted_t {},
-    //        on_before_command_line_processing: None,
-    //        on_register_custom_schemes: None,
-    //        get_resource_bundle_handler: None,
-    //        get_browser_process_handler: None,
-    //        get_render_process_handler: None,
-    //    };
-    let mut app = null_mut();
-
-    unsafe { cef_sys::cef_initialize(&args3, &settings2, app, null_mut()) }
+    unsafe { cef_sys::cef_initialize(&args3, &settings.to_cef(), application.to_cef(), null_mut()) }
 }
 
 pub fn shutdown() {

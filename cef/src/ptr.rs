@@ -1,0 +1,73 @@
+use cef_sys::{_cef_base_ref_counted_t, cef_base_ref_counted_t};
+use std::intrinsics::transmute;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+// This relies on the c storage structure to allow casting a *_cef_base_ref_counted_t into a pointer of this type which starts with _cef_base_ref_counted_t
+#[repr(C)]
+struct BaseRefCountedExt<T> {
+    v: T,
+    count: AtomicUsize,
+}
+impl<T> BaseRefCountedExt<T> {
+    fn new<F>(wrap: F) -> *mut T
+    where
+        F: Fn(cef_base_ref_counted_t) -> T,
+    {
+        let base = BaseRefCountedExt {
+            v: wrap(_cef_base_ref_counted_t {
+                size: std::mem::size_of::<Self>(),
+                add_ref: Some(Self::add_ref),
+                release: Some(Self::release),
+                has_one_ref: Some(Self::has_one_ref),
+                has_at_least_one_ref: Some(Self::has_at_least_one_ref),
+            }),
+            count: AtomicUsize::new(1),
+        };
+        unsafe { transmute(Box::into_raw(Box::new(base))) }
+    }
+
+    fn from_ptr<'a>(ptr: *mut cef_base_ref_counted_t) -> &'a mut BaseRefCountedExt<T> {
+        unsafe { transmute(ptr) }
+    }
+    extern "C" fn add_ref(ptr: *mut cef_base_ref_counted_t) {
+        let base = Self::from_ptr(ptr);
+        let new = base.count.fetch_add(1, Ordering::Relaxed);
+        println!("Add ref: {}", new + 1);
+    }
+    extern "C" fn release(ptr: *mut cef_base_ref_counted_t) -> i32 {
+        let base = Self::from_ptr(ptr);
+        let old_count = base.count.fetch_sub(1, Ordering::Release);
+        println!("Release ref: {}", old_count - 1);
+        if old_count == 1 {
+            // reclaim and release
+            unsafe { Box::from_raw(base) };
+
+            1 // true
+        } else {
+            0 // false
+        }
+    }
+    extern "C" fn has_one_ref(ptr: *mut cef_base_ref_counted_t) -> i32 {
+        let base = Self::from_ptr(ptr);
+        if base.count.load(Ordering::SeqCst) == 1 {
+            1 // true
+        } else {
+            0 // false
+        }
+    }
+    extern "C" fn has_at_least_one_ref(ptr: *mut cef_base_ref_counted_t) -> i32 {
+        let base = Self::from_ptr(ptr);
+        if base.count.load(Ordering::SeqCst) >= 1 {
+            1 // true
+        } else {
+            0 // false
+        }
+    }
+}
+
+pub fn wrap_ptr<T, F>(wrap: F) -> *mut T
+where
+    F: Fn(cef_base_ref_counted_t) -> T,
+{
+    BaseRefCountedExt::new(wrap)
+}

@@ -1,11 +1,16 @@
 use cef::Settings;
-use cef_sys::cef_log_severity_t_LOGSEVERITY_VERBOSE;
+use std::sync::Arc;
 use std::time::Duration;
+
+struct MyApp {}
+impl cef::App for MyApp {}
 
 fn main() {
     let args = std::env::args().collect();
 
-    if cef::execute_process(&args) > 0 {
+    let app = Arc::new(MyApp {});
+
+    if cef::execute_process(&args, &app) > 0 {
         // It was a worker process, so stop here
         return;
     }
@@ -13,7 +18,8 @@ fn main() {
     let mut settings: Settings = Default::default();
     //    settings.log_severity = cef_log_severity_t_LOGSEVERITY_VERBOSE;
     settings.remote_debugging_port = Some(9876);
-    cef::initialize(&args, settings);
+
+    cef::initialize(&args, settings, &app);
 
     println!("test");
 
