@@ -40,7 +40,7 @@ impl<TApp: App> AppWrapper<TApp> {
     }
 
     extern "C" fn on_register_custom_schemes(
-        app: *mut cef_app_t,
+        _app: *mut cef_app_t,
         _registrar: *mut cef_scheme_registrar_t,
     ) {
         //        let app = Self::from_ptr(app);
@@ -48,7 +48,7 @@ impl<TApp: App> AppWrapper<TApp> {
         //        app.internal.on_register_custom_schemes();
     }
     extern "C" fn get_resource_bundle_handler(
-        app: *mut cef_app_t,
+        _app: *mut cef_app_t,
     ) -> *mut cef_resource_bundle_handler_t {
         //        let app = Self::from_ptr(app);
 
@@ -56,7 +56,7 @@ impl<TApp: App> AppWrapper<TApp> {
         null_mut()
     }
     extern "C" fn get_browser_process_handler(
-        app: *mut cef_app_t,
+        _app: *mut cef_app_t,
     ) -> *mut cef_browser_process_handler_t {
         //        let app = Self::from_ptr(app);
 
@@ -64,12 +64,29 @@ impl<TApp: App> AppWrapper<TApp> {
         null_mut()
     }
     extern "C" fn get_render_process_handler(
-        app: *mut cef_app_t,
+        _app: *mut cef_app_t,
     ) -> *mut cef_render_process_handler_t {
         //        let app = Self::from_ptr(app);
 
         //        app.internal.get_render_process_handler();
         null_mut()
+    }
+}
+impl<TApp: App> ToCef<cef_app_t> for Arc<TApp> {
+    fn to_cef(&self) -> *mut cef_app_t {
+        wrap_ptr(|base| AppWrapper {
+            base: cef_app_t {
+                base,
+                on_before_command_line_processing: Some(
+                    AppWrapper::<TApp>::on_before_command_line_processing,
+                ),
+                on_register_custom_schemes: Some(AppWrapper::<TApp>::on_register_custom_schemes),
+                get_resource_bundle_handler: Some(AppWrapper::<TApp>::get_resource_bundle_handler),
+                get_browser_process_handler: Some(AppWrapper::<TApp>::get_browser_process_handler),
+                get_render_process_handler: Some(AppWrapper::<TApp>::get_render_process_handler),
+            },
+            internal: self.clone(),
+        })
     }
 }
 
@@ -122,22 +139,4 @@ impl CommandLine {
     }
 
     // TODO - fill out remaining
-}
-
-impl<TApp: App> ToCef<cef_app_t> for Arc<TApp> {
-    fn to_cef(&self) -> *mut cef_app_t {
-        wrap_ptr(|base| AppWrapper {
-            base: cef_app_t {
-                base,
-                on_before_command_line_processing: Some(
-                    AppWrapper::<TApp>::on_before_command_line_processing,
-                ),
-                on_register_custom_schemes: Some(AppWrapper::<TApp>::on_register_custom_schemes),
-                get_resource_bundle_handler: Some(AppWrapper::<TApp>::get_resource_bundle_handler),
-                get_browser_process_handler: Some(AppWrapper::<TApp>::get_browser_process_handler),
-                get_render_process_handler: Some(AppWrapper::<TApp>::get_render_process_handler),
-            },
-            internal: self.clone(),
-        })
-    }
 }

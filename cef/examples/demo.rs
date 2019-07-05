@@ -1,3 +1,5 @@
+#![feature(async_await)]
+
 use cef::{create_browser_sync, BrowserSettings, Settings, WindowInfo};
 use std::sync::Arc;
 use std::time::Duration;
@@ -33,7 +35,11 @@ fn main() {
         let mut browser_settings = BrowserSettings::default();
         browser_settings.windowless_frame_rate = 30; // TODO - not necessary here?
 
-        create_browser_sync(window_info, "http://google.com", browser_settings);
+        cef::post_task(cef::ThreadId::Renderer, move || {
+            //
+            create_browser_sync(window_info, "http://google.com", browser_settings);
+        });
+
         // TODO
 
         println!("waiting");

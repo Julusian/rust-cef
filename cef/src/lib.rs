@@ -4,6 +4,7 @@ mod app;
 mod ptr;
 mod settings;
 mod string;
+mod thread;
 mod window;
 
 use crate::string::CefString;
@@ -11,8 +12,9 @@ pub use app::*;
 pub use settings::*;
 use std::ffi::CString;
 use std::os::raw::c_char;
-use std::ptr::{null, null_mut};
+use std::ptr::null_mut;
 use std::sync::Arc;
+pub use thread::*;
 pub use window::*;
 
 pub(crate) trait ToCef<T> {

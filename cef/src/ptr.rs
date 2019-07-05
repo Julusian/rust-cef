@@ -1,6 +1,6 @@
 use cef_sys::{_cef_base_ref_counted_t, cef_base_ref_counted_t};
 use std::marker::PhantomData;
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 pub(crate) unsafe trait WrapperFor<T> {}
@@ -19,10 +19,15 @@ impl<TCef, TWrapper> Deref for BaseRefCountedExt<TCef, TWrapper> {
         &self.v
     }
 }
+impl<TCef, TWrapper> DerefMut for BaseRefCountedExt<TCef, TWrapper> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.v
+    }
+}
 impl<TCef, TWrapper: WrapperFor<TCef>> BaseRefCountedExt<TCef, TWrapper> {
     fn wrap_ptr<F>(wrapper: F) -> *mut TCef
     where
-        F: Fn(cef_base_ref_counted_t) -> TWrapper,
+        F: FnOnce(cef_base_ref_counted_t) -> TWrapper,
     {
         let base = BaseRefCountedExt::<TCef, TWrapper> {
             v: wrapper(_cef_base_ref_counted_t {
@@ -79,7 +84,7 @@ impl<TCef, TWrapper: WrapperFor<TCef>> BaseRefCountedExt<TCef, TWrapper> {
 
 pub(crate) fn wrap_ptr<TCef, TWrapper, F>(wrapper: F) -> *mut TCef
 where
-    F: Fn(cef_base_ref_counted_t) -> TWrapper,
+    F: FnOnce(cef_base_ref_counted_t) -> TWrapper,
     TWrapper: WrapperFor<TCef>,
 {
     BaseRefCountedExt::wrap_ptr(wrapper)

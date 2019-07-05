@@ -1,5 +1,5 @@
 use crate::string::CefString;
-use cef_sys::{cef_settings_t, cef_string_t};
+use cef_sys::cef_settings_t;
 use std::os::raw::c_int;
 
 #[derive(Debug, Copy, Clone)]
