@@ -1,6 +1,7 @@
 extern crate cef_sys;
 
 mod app;
+mod client;
 mod ptr;
 mod settings;
 mod string;
@@ -9,6 +10,7 @@ mod window;
 
 use crate::string::CefString;
 pub use app::*;
+pub use client::*;
 pub use settings::*;
 use std::ffi::CString;
 use std::os::raw::c_char;
@@ -59,15 +61,17 @@ pub fn initialize<TApp: App>(
     unsafe { cef_sys::cef_initialize(&args3, &settings.to_cef(), application.to_cef(), null_mut()) }
 }
 
-pub fn create_browser_sync(info: WindowInfo, url: &str, settings: BrowserSettings) {
-    let url = CefString::from_str(url);
-    // TODO
-
+pub fn create_browser_sync<TClient: Client>(
+    info: WindowInfo,
+    client: &Arc<TClient>,
+    url: &str,
+    settings: BrowserSettings,
+) {
     let res = unsafe {
         cef_sys::cef_browser_host_create_browser_sync(
             &info.to_cef(),
-            null_mut(),
-            &url.into_cef(),
+            client.to_cef(),
+            &CefString::from_str(url).into_cef(),
             &settings.to_cef(),
             null_mut(),
             null_mut(),

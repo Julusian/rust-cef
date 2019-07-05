@@ -24,7 +24,7 @@ pub fn post_task<F: FnOnce() -> ()>(id: ThreadId, func: F) -> Result<(), bool> {
     }
 
     let task = wrap_ptr(move |base| TaskWrapper {
-        base: cef_task_t {
+        _base: cef_task_t {
             base,
             execute: Some(TaskWrapper::<F>::execute),
         },
@@ -41,7 +41,7 @@ pub fn post_task<F: FnOnce() -> ()>(id: ThreadId, func: F) -> Result<(), bool> {
 }
 
 pub struct TaskWrapper<F: FnOnce() -> ()> {
-    base: cef_task_t,
+    _base: cef_task_t,
     func: Option<F>,
 }
 unsafe impl<F: FnOnce() -> ()> WrapperFor<cef_task_t> for TaskWrapper<F> {}

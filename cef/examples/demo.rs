@@ -7,6 +7,9 @@ use std::time::Duration;
 struct MyApp {}
 impl cef::App for MyApp {}
 
+struct MyClient {}
+impl cef::Client for MyClient {}
+
 fn main() {
     let args = std::env::args().collect();
 
@@ -35,10 +38,14 @@ fn main() {
         let mut browser_settings = BrowserSettings::default();
         browser_settings.windowless_frame_rate = 30; // TODO - not necessary here?
 
-        cef::post_task(cef::ThreadId::Renderer, move || {
+        let client = Arc::new(MyClient {});
+
+        let client2 = client.clone();
+        cef::post_task(cef::ThreadId::UI, move || {
             //
-            create_browser_sync(window_info, "http://google.com", browser_settings);
-        });
+            create_browser_sync(window_info, &client2, "http://google.com", browser_settings);
+        })
+        .unwrap();
 
         // TODO
 

@@ -4,3 +4,4 @@ Cargo.lock
 /.idea
 /*.iml
 /cef-sys/lib
+/GPUCache

@@ -48,13 +48,11 @@ impl<TCef, TWrapper: WrapperFor<TCef>> BaseRefCountedExt<TCef, TWrapper> {
     }
     extern "C" fn add_ref(ptr: *mut cef_base_ref_counted_t) {
         let base = Self::from_ptr(ptr);
-        let new = base.count.fetch_add(1, Ordering::Relaxed);
-        println!("Add ref: {}", new + 1);
+        base.count.fetch_add(1, Ordering::Relaxed);
     }
     extern "C" fn release(ptr: *mut cef_base_ref_counted_t) -> i32 {
         let base = Self::from_ptr(ptr);
         let old_count = base.count.fetch_sub(1, Ordering::Release);
-        println!("Release ref: {}", old_count - 1);
         if old_count == 1 {
             // reclaim and release
             unsafe { Box::from_raw(base) };
