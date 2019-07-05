@@ -109,18 +109,22 @@ impl Browser {
     }
 
     pub fn get_main_frame(&self) -> *mut cef_frame_t {
+        // TODO
         null_mut()
     }
 
     pub fn get_focused_frame(&self) -> *mut cef_frame_t {
+        // TODO
         null_mut()
     }
 
     pub fn get_frame_byident(&self, identifier: i64) -> *mut cef_frame_t {
+        // TODO
         null_mut()
     }
 
     pub fn get_frame(&self, name: *const cef_string_t) -> *mut cef_frame_t {
+        // TODO
         null_mut()
     }
 
@@ -152,5 +156,7 @@ impl Browser {
         }
     }
 
-    pub fn get_frame_names(&self, names: cef_string_list_t) {}
+    pub fn get_frame_names(&self, names: cef_string_list_t) {
+        // TODO
+    }
 }

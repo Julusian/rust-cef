@@ -10,3 +10,4 @@ edition = "2018"
 [dependencies]
 cef-sys = { path="../cef-sys" }
 widestring = "0.4.0"
+bitflags = "1.1.0"

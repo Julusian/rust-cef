@@ -100,7 +100,7 @@ impl<TCef, TWrapper: WrapperFor<TCef>> BaseRefCountedExt<TCef, TWrapper> {
             count: AtomicUsize::new(1),
             phantom: PhantomData,
         };
-        unsafe { Box::into_raw(Box::new(base)) as *mut TCef }
+        Box::into_raw(Box::new(base)) as *mut TCef
     }
 
     fn from_ptr<'a>(ptr: *mut cef_base_ref_counted_t) -> &'a mut BaseRefCountedExt<TCef, TWrapper> {

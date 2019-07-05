@@ -1,4 +1,5 @@
 use cef_sys::cef_rect_t;
+use std::slice::from_raw_parts;
 
 #[derive(Clone, Debug)]
 pub struct CefRect {
@@ -8,13 +9,20 @@ pub struct CefRect {
     pub height: i32,
 }
 impl CefRect {
-    pub(crate) fn from(raw: &cef_rect_t) -> CefRect {
+    pub(crate) fn from_ptr(raw: *const cef_rect_t) -> Self {
+        Self::from(unsafe { &*raw })
+    }
+    pub(crate) fn from(raw: &cef_rect_t) -> Self {
         CefRect {
             x: raw.x,
             y: raw.y,
             width: raw.width,
             height: raw.height,
         }
+    }
+    pub(crate) fn from_array(count: usize, rects: *const cef_rect_t) -> Vec<CefRect> {
+        let raw_rects = unsafe { from_raw_parts(rects, count) };
+        raw_rects.iter().map(|r| Self::from(r)).collect()
     }
 }
 impl Default for CefRect {
