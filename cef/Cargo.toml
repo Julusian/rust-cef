@@ -1,0 +1,11 @@
+[package]
+name = "cef"
+version = "0.1.0"
+authors = ["Julian Waller <git@julusian.co.uk>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cef-sys = { path="../cef-sys" }
+widestring = "0.4.0"

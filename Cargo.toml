@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+ "cef-sys",
+ "cef"
+]
