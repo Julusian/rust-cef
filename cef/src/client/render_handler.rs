@@ -49,7 +49,7 @@ pub trait RenderHandler {
     //get_accessibility_handler
     fn get_root_screen_rect(&self, browser: &Browser) -> Option<CefRect>;
     fn get_view_rect(&self, browser: &Browser) -> CefRect;
-    fn get_screen_point(&self, browser: &Browser, view: CefPoint) -> Option<CefPoint> {
+    fn get_screen_point(&self, _browser: &Browser, _view: CefPoint) -> Option<CefPoint> {
         None
     }
     //get_screen_info:
@@ -94,22 +94,22 @@ pub trait RenderHandler {
 }
 
 impl RenderHandler for () {
-    fn get_root_screen_rect(&self, browser: &Browser) -> Option<CefRect> {
+    fn get_root_screen_rect(&self, _browser: &Browser) -> Option<CefRect> {
         None
     }
 
-    fn get_view_rect(&self, browser: &Browser) -> CefRect {
+    fn get_view_rect(&self, _browser: &Browser) -> CefRect {
         CefRect::default()
     }
 
     fn on_paint(
         &self,
-        browser: &Browser,
-        type_: PaintElementType,
-        dirty_rects: &[CefRect],
-        bytes: &[u8],
-        width: i32,
-        height: i32,
+        _browser: &Browser,
+        _type_: PaintElementType,
+        _dirty_rects: &[CefRect],
+        _bytes: &[u8],
+        _width: i32,
+        _height: i32,
     ) {
     }
 }
@@ -127,7 +127,7 @@ impl<T: RenderHandler> RenderHandlerWrapper<T> {
     }
 
     extern "C" fn get_accessibility_handler(
-        client: *mut cef_render_handler_t,
+        _client: *mut cef_render_handler_t,
     ) -> *mut cef_accessibility_handler_t {
         // TODO
         null_mut()
@@ -199,9 +199,9 @@ impl<T: RenderHandler> RenderHandlerWrapper<T> {
     }
 
     extern "C" fn get_screen_info(
-        client: *mut cef_render_handler_t,
-        browser: *mut cef_browser_t,
-        screen_info: *mut cef_screen_info_t,
+        _client: *mut cef_render_handler_t,
+        _browser: *mut cef_browser_t,
+        _screen_info: *mut cef_screen_info_t,
     ) -> ::std::os::raw::c_int {
         // TODO
         0
@@ -268,22 +268,22 @@ impl<T: RenderHandler> RenderHandlerWrapper<T> {
     }
 
     extern "C" fn on_cursor_change(
-        client: *mut cef_render_handler_t,
-        browser: *mut cef_browser_t,
-        cursor: ::std::os::raw::c_ulong,
-        type_: cef_cursor_type_t,
-        custom_cursor_info: *const cef_cursor_info_t,
+        _client: *mut cef_render_handler_t,
+        _browser: *mut cef_browser_t,
+        _cursor: ::std::os::raw::c_ulong,
+        _type_: cef_cursor_type_t,
+        _custom_cursor_info: *const cef_cursor_info_t,
     ) {
         // TODO
     }
 
     extern "C" fn start_dragging(
-        client: *mut cef_render_handler_t,
-        browser: *mut cef_browser_t,
-        drag_data: *mut cef_drag_data_t,
-        allowed_ops: cef_drag_operations_mask_t,
-        x: ::std::os::raw::c_int,
-        y: ::std::os::raw::c_int,
+        _client: *mut cef_render_handler_t,
+        _browser: *mut cef_browser_t,
+        _drag_data: *mut cef_drag_data_t,
+        _allowed_ops: cef_drag_operations_mask_t,
+        _x: ::std::os::raw::c_int,
+        _y: ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int {
         // TODO
         0

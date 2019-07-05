@@ -72,7 +72,7 @@ pub fn create_browser_sync<TClient: Client>(
     url: &str,
     settings: BrowserSettings,
 ) {
-    let res = unsafe {
+    let _res = unsafe {
         cef_sys::cef_browser_host_create_browser_sync(
             &info.to_cef(),
             client.to_cef(),

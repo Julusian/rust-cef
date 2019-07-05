@@ -44,7 +44,7 @@ impl<T: Client> ClientWrapper<T> {
         unsafe { &mut *(ptr as *mut _) }
     }
 
-    extern "C" fn get_audio_handler(client: *mut cef_client_t) -> *mut cef_audio_handler_t {
+    extern "C" fn get_audio_handler(_client: *mut cef_client_t) -> *mut cef_audio_handler_t {
         null_mut()
     }
 

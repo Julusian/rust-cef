@@ -118,12 +118,12 @@ impl Browser {
         null_mut()
     }
 
-    pub fn get_frame_byident(&self, identifier: i64) -> *mut cef_frame_t {
+    pub fn get_frame_byident(&self, _identifier: i64) -> *mut cef_frame_t {
         // TODO
         null_mut()
     }
 
-    pub fn get_frame(&self, name: *const cef_string_t) -> *mut cef_frame_t {
+    pub fn get_frame(&self, _name: *const cef_string_t) -> *mut cef_frame_t {
         // TODO
         null_mut()
     }
@@ -136,11 +136,7 @@ impl Browser {
         }
     }
 
-    pub fn get_frame_identifiers(
-        &self,
-        identifiers_count: *mut usize,
-        identifiers: *mut i64,
-    ) -> Vec<i64> {
+    pub fn get_frame_identifiers(&self) -> Vec<i64> {
         if let Some(func) = self.ptr.as_ref().get_frame_identifiers {
             unsafe {
                 let mut identifiers = vec![0; self.get_frame_count()];
@@ -156,7 +152,7 @@ impl Browser {
         }
     }
 
-    pub fn get_frame_names(&self, names: cef_string_list_t) {
+    pub fn get_frame_names(&self, _names: cef_string_list_t) {
         // TODO
     }
 }
