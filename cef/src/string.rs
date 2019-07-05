@@ -45,6 +45,10 @@ impl CefStringUTF16 {
             dtor: Some(free_str),
         }
     }
+    pub fn convert_str_to_cef(s: Option<&str>) -> cef_string_utf16_t {
+        s.map(|x| CefString::from_str(x).into_cef())
+            .unwrap_or_else(|| unsafe { std::mem::zeroed() })
+    }
 }
 impl ToString for CefStringUTF16 {
     fn to_string(&self) -> String {

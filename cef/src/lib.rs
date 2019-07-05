@@ -4,36 +4,20 @@ mod app;
 mod ptr;
 mod settings;
 mod string;
+mod window;
 
+use crate::string::CefString;
 pub use app::*;
 pub use settings::*;
 use std::ffi::CString;
 use std::os::raw::c_char;
-use std::ptr::null_mut;
+use std::ptr::{null, null_mut};
 use std::sync::Arc;
+pub use window::*;
 
 pub(crate) trait ToCef<T> {
     fn to_cef(&self) -> *mut T;
 }
-
-//pub struct CefRc<T> {
-//    ptr: *const T, // TODO - type?
-//}
-//impl<T> Deref for CefRc<T> {
-//    type Target = T;
-//
-//    fn deref(&self) -> &Self::Target {
-//        unsafe { &*self.ptr }
-//    }
-//}
-//impl<T> CefRc<T> {
-//    pub fn wrap(ptr: Arc<T>) {}
-//    //    pub fn new(ptr: *T) {
-//    //        if ptr != null() {
-//    //            ptr->AddRef();
-//    //        }
-//    //    }
-//}
 
 pub fn execute_process<TApp: App>(
     args: &Vec<String>,
@@ -73,8 +57,36 @@ pub fn initialize<TApp: App>(
     unsafe { cef_sys::cef_initialize(&args3, &settings.to_cef(), application.to_cef(), null_mut()) }
 }
 
+pub fn create_browser_sync(info: WindowInfo, url: &str, settings: BrowserSettings) {
+    let url = CefString::from_str(url);
+    // TODO
+
+    let res = unsafe {
+        cef_sys::cef_browser_host_create_browser_sync(
+            &info.to_cef(),
+            null_mut(),
+            &url.into_cef(),
+            &settings.to_cef(),
+            null_mut(),
+            null_mut(),
+        )
+    };
+}
+
 pub fn shutdown() {
     unsafe { cef_sys::cef_shutdown() }
+}
+
+pub fn do_message_loop_work() {
+    unsafe { cef_sys::cef_do_message_loop_work() }
+}
+
+pub fn run_message_loop() {
+    unsafe { cef_sys::cef_run_message_loop() }
+}
+
+pub fn quit_message_loop() {
+    unsafe { cef_sys::cef_quit_message_loop() }
 }
 
 #[cfg(test)]
