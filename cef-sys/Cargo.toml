@@ -1,0 +1,11 @@
+[package]
+name = "cef-sys"
+version = "0.1.0"
+license = "MIT/Apache-2.0"
+authors = ["Julian Waller <git@julusian.co.uk>"]
+edition = "2018"
+build="build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
