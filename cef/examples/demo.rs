@@ -1,10 +1,12 @@
 #![feature(async_await)]
 #![feature(type_alias_enum_variants)]
 
-use cef::{create_browser_sync, Browser, BrowserSettings, CefRect, PaintElementType, RenderHandler, Settings, WindowInfo};
+use cef::{
+    create_browser_sync, Browser, BrowserSettings, CefRect, PaintElementType, RenderHandler,
+    Settings, WindowInfo,
+};
 use std::sync::Arc;
 use std::time::Duration;
-use std::ptr::null_mut;
 
 struct MyApp {}
 impl cef::App for MyApp {}
@@ -52,21 +54,19 @@ impl cef::Client for MyClient {
 }
 
 fn main() {
-//    let args = std::env::args().collect::<Vec<String>>();
-
     let app = Arc::new(MyApp {});
 
-    if cef::execute_process(null_mut(),&app) > 0 {
+    if cef::execute_process(&app) > 0 {
         // It was a worker process, so stop here
         return;
     }
 
     let mut settings = Settings::default();
-    //    settings.log_severity = cef_log_severity_t_LOGSEVERITY_VERBOSE;
+    // settings.log_severity = cef_log_severity_t_LOGSEVERITY_VERBOSE;
     settings.remote_debugging_port = Some(9876);
-//    settings.windowless_rendering_enabled = true;
+    // settings.windowless_rendering_enabled = true;
 
-    cef::initialize(null_mut(), settings, &app);
+    cef::initialize(settings, &app);
 
     println!("ready");
 
@@ -76,7 +76,7 @@ fn main() {
         let mut window_info = WindowInfo::default();
         window_info.width = 1280;
         window_info.height = 720;
-//        window_info.windowless_rendering_enabled = true;
+        // window_info.windowless_rendering_enabled = true;
 
         let mut browser_settings = BrowserSettings::default();
         browser_settings.windowless_frame_rate = 30; // TODO - not necessary here?
@@ -87,12 +87,10 @@ fn main() {
 
         let client2 = client.clone();
         cef::post_task(cef::ThreadId::TID_UI, move || {
-            //
+            // Open a window
             create_browser_sync(window_info, &client2, "http://google.com", browser_settings);
         })
         .unwrap();
-
-        // TODO
 
         println!("waiting");
         std::thread::sleep(Duration::from_secs(600));
