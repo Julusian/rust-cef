@@ -1,7 +1,7 @@
 use crate::ptr::RefCounterGuard;
 use crate::types::string::CefString;
 use crate::Frame;
-use cef_sys::{cef_browser_host_t, cef_browser_t, cef_frame_t, cef_string_list_t, cef_string_t};
+use cef_sys::{cef_browser_host_t, cef_browser_t};
 use std::ptr::null_mut;
 
 pub struct Browser {
@@ -187,7 +187,19 @@ impl Browser {
         }
     }
 
-    pub fn get_frame_names(&self, _names: cef_string_list_t) {
-        // TODO
+    pub fn get_frame_names(&self) -> Vec<String> {
+        if let Some(func) = self.ptr.as_ref().get_frame_names {
+            unsafe {
+                let names = cef_sys::cef_string_list_alloc();
+                func(self.ptr.get(), names);
+
+                let res = CefString::parse_string_list(names);
+                cef_sys::cef_string_list_free(names);
+
+                res
+            }
+        } else {
+            Vec::new()
+        }
     }
 }

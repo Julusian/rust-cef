@@ -1,10 +1,10 @@
 use crate::ptr::RefCounterGuard;
 use crate::types::string::CefString;
 use cef_sys::{
-    cef_command_line_t, cef_string_list_t, cef_string_map_t, cef_string_t, cef_string_userfree_t,
+    cef_command_line_t,
 };
 use std::collections::HashMap;
-use std::ptr::null_mut;
+
 
 #[derive(Clone)]
 pub struct CommandLine {
@@ -66,14 +66,9 @@ impl CommandLine {
                 let arguments = cef_sys::cef_string_list_alloc();
                 func(self.ptr.get(), arguments);
 
-                let count = cef_sys::cef_string_list_size(arguments);
-                let mut res = Vec::with_capacity(count);
-                for i in 0..count {
-                    let value = null_mut();
-                    if cef_sys::cef_string_list_value(arguments, i, value) > 0 {
-                        res.push(CefString::from_cef(value).to_string());
-                    }
-                }
+                let res = CefString::parse_string_list(arguments);
+                cef_sys::cef_string_list_free(arguments);
+
                 res
             }
         } else {
@@ -137,19 +132,9 @@ impl CommandLine {
                 let switches = cef_sys::cef_string_map_alloc();
                 func(self.ptr.get(), switches);
 
-                let count = cef_sys::cef_string_map_size(switches);
-                let mut res = HashMap::with_capacity(count);
-                for i in 0..count {
-                    let key = null_mut();
-                    let value = null_mut();
-                    cef_sys::cef_string_map_key(switches, i, key);
-                    cef_sys::cef_string_map_value(switches, i, value);
+                let res = CefString::parse_string_map(switches);
+                cef_sys::cef_string_map_free(switches);
 
-                    res.insert(
-                        CefString::from_cef(key).to_string(),
-                        CefString::from_cef(value).to_string(),
-                    );
-                }
                 res
             }
         } else {
@@ -186,14 +171,9 @@ impl CommandLine {
                 let arguments = cef_sys::cef_string_list_alloc();
                 func(self.ptr.get(), arguments);
 
-                let count = cef_sys::cef_string_list_size(arguments);
-                let mut res = Vec::with_capacity(count);
-                for i in 0..count {
-                    let value = null_mut();
-                    if cef_sys::cef_string_list_value(arguments, i, value) > 0 {
-                        res.push(CefString::from_cef(value).to_string());
-                    }
-                }
+                let res = CefString::parse_string_list(arguments);
+                cef_sys::cef_string_list_free(arguments);
+
                 res
             }
         } else {
