@@ -1,5 +1,20 @@
 use crate::string::CefString;
 use cef_sys::{cef_browser_settings_t, cef_state_t, cef_window_info_t};
+use std::ptr::null_mut;
+
+#[cfg(target_os = "windows")]
+pub type WindowHandle = cef_sys::HWND;
+#[cfg(not(target_os = "windows"))]
+pub type WindowHandle = u64;
+
+#[cfg(target_os = "windows")]
+pub fn window_handle_default() -> WindowHandle {
+    null_mut()
+}
+#[cfg(not(target_os = "windows"))]
+pub fn window_handle_default() -> WindowHandle {
+    0
+}
 
 #[derive(Debug, Copy, Clone)]
 pub struct WindowInfo<'a> {
@@ -13,8 +28,8 @@ pub struct WindowInfo<'a> {
     pub shared_texture_enabled: bool,
     pub external_begin_frame_enabled: bool,
 
-    pub parent_window: u64,
-    pub window: u64,
+    pub parent_window: WindowHandle,
+    pub window: WindowHandle,
 }
 impl<'a> Default for WindowInfo<'a> {
     fn default() -> WindowInfo<'a> {
@@ -29,12 +44,13 @@ impl<'a> Default for WindowInfo<'a> {
             shared_texture_enabled: false,
             external_begin_frame_enabled: false,
 
-            parent_window: 0,
-            window: 0,
+            parent_window: window_handle_default(),
+            window: window_handle_default(),
         }
     }
 }
 impl<'a> WindowInfo<'a> {
+    #[cfg(not(target_os = "windows"))]
     pub(crate) fn to_cef(&self) -> cef_window_info_t {
         cef_window_info_t {
             window_name: CefString::convert_str_to_cef(self.window_name),
@@ -49,13 +65,33 @@ impl<'a> WindowInfo<'a> {
             window: self.window,
         }
     }
+    #[cfg(target_os = "windows")]
+    pub(crate) fn to_cef(&self) -> cef_window_info_t {
+        cef_window_info_t {
+            window_name: CefString::convert_str_to_cef(self.window_name),
+            x: self.x as i32,
+            y: self.y as i32,
+            width: self.width as i32,
+            height: self.height as i32,
+            parent_window: self.parent_window,
+            windowless_rendering_enabled: self.windowless_rendering_enabled as i32,
+            shared_texture_enabled: self.shared_texture_enabled as i32,
+            external_begin_frame_enabled: self.external_begin_frame_enabled as i32,
+            window: self.window,
+
+            // Windows only values
+            ex_style: 0,
+            style: 0,
+            menu: null_mut()
+        }
+    }
 }
 
 fn optional_bool_to_cef_state(val: Option<bool>) -> cef_state_t {
     match val {
-        None => cef_sys::cef_state_t_STATE_DEFAULT,
-        Some(false) => cef_sys::cef_state_t_STATE_DISABLED,
-        Some(true) => cef_sys::cef_state_t_STATE_ENABLED,
+        None => cef_sys::cef_state_t::STATE_DEFAULT,
+        Some(false) => cef_sys::cef_state_t::STATE_DISABLED,
+        Some(true) => cef_sys::cef_state_t::STATE_ENABLED,
     }
 }
 

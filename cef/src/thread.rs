@@ -1,21 +1,10 @@
 use crate::ptr::{wrap_ptr, BaseRefCountedExt, WrapperFor};
 use cef_sys::{cef_currently_on, cef_post_task, cef_task_t};
+use crate::ThreadId;
 
-#[derive(Copy, Clone, Debug)]
-#[non_exhaustive]
-pub enum ThreadId {
-    UI = cef_sys::cef_thread_id_t_TID_UI as isize,
-    FileBackground = cef_sys::cef_thread_id_t_TID_FILE_BACKGROUND as isize,
-    // File = cef_sys::cef_thread_id_t_TID_FILE as isize,
-    FileUserVisible = cef_sys::cef_thread_id_t_TID_FILE_USER_VISIBLE as isize,
-    FileUserBlocking = cef_sys::cef_thread_id_t_TID_FILE_USER_BLOCKING as isize,
-    ProcessLauncher = cef_sys::cef_thread_id_t_TID_PROCESS_LAUNCHER as isize,
-    IO = cef_sys::cef_thread_id_t_TID_IO as isize,
-    Renderer = cef_sys::cef_thread_id_t_TID_RENDERER as isize,
-}
 
 pub fn currently_on(id: ThreadId) -> bool {
-    unsafe { cef_currently_on(id as u32) > 0 }
+    unsafe { cef_currently_on(id) > 0 }
 }
 
 pub fn post_task<F: FnOnce() -> ()>(id: ThreadId, func: F) -> Result<(), bool> {
@@ -33,7 +22,7 @@ pub fn post_task<F: FnOnce() -> ()>(id: ThreadId, func: F) -> Result<(), bool> {
         func: Some(func),
     });
 
-    let ok = unsafe { cef_post_task(id as u32, task) };
+    let ok = unsafe { cef_post_task(id, task) };
     if ok > 0 {
         Ok(())
     } else {

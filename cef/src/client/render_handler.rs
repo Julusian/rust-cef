@@ -1,6 +1,6 @@
 use crate::ptr::{wrap_ptr, BaseRefCountedExt, WrapperFor};
 use crate::types::string::CefString;
-use crate::{Browser, CefPoint, CefRange, CefRect, ToCef};
+use crate::{Browser, CefPoint, CefRange, CefRect, ToCef, PaintElementType, TextInputMode, DragOperationsMask};
 use cef_sys::{
     cef_accessibility_handler_t, cef_browser_t, cef_cursor_info_t, cef_cursor_type_t,
     cef_drag_data_t, cef_drag_operations_mask_t, cef_paint_element_type_t, cef_range_t, cef_rect_t,
@@ -10,40 +10,11 @@ use std::ptr::null_mut;
 use std::slice::from_raw_parts;
 use std::sync::Arc;
 
-#[derive(Copy, Clone, Debug)]
-#[non_exhaustive]
-#[repr(u32)]
-pub enum PaintElementType {
-    View = cef_sys::cef_paint_element_type_t_PET_VIEW,
-    Popup = cef_sys::cef_paint_element_type_t_PET_POPUP,
-}
 
-#[derive(Copy, Clone, Debug)]
-#[non_exhaustive]
-#[repr(u32)]
-pub enum TextInputMode {
-    Default = cef_sys::cef_text_input_mode_t_CEF_TEXT_INPUT_MODE_DEFAULT,
-    None = cef_sys::cef_text_input_mode_t_CEF_TEXT_INPUT_MODE_NONE,
-    Text = cef_sys::cef_text_input_mode_t_CEF_TEXT_INPUT_MODE_TEXT,
-    Tel = cef_sys::cef_text_input_mode_t_CEF_TEXT_INPUT_MODE_TEL,
-    Url = cef_sys::cef_text_input_mode_t_CEF_TEXT_INPUT_MODE_URL,
-    Email = cef_sys::cef_text_input_mode_t_CEF_TEXT_INPUT_MODE_EMAIL,
-    Numeric = cef_sys::cef_text_input_mode_t_CEF_TEXT_INPUT_MODE_NUMERIC,
-    Decimal = cef_sys::cef_text_input_mode_t_CEF_TEXT_INPUT_MODE_DECIMAL,
-    Search = cef_sys::cef_text_input_mode_t_CEF_TEXT_INPUT_MODE_SEARCH,
-}
-
-bitflags::bitflags! {
-   pub struct DragOperationsMask: u32 {
-        const COPY = cef_sys::cef_drag_operations_mask_t_DRAG_OPERATION_COPY;
-        const LINK = cef_sys::cef_drag_operations_mask_t_DRAG_OPERATION_LINK;
-        const GENERIC = cef_sys::cef_drag_operations_mask_t_DRAG_OPERATION_GENERIC;
-        const PRIVATE = cef_sys::cef_drag_operations_mask_t_DRAG_OPERATION_PRIVATE;
-        const MOVE = cef_sys::cef_drag_operations_mask_t_DRAG_OPERATION_MOVE;
-        const DELETE = cef_sys::cef_drag_operations_mask_t_DRAG_OPERATION_DELETE;
-        const EVERY = cef_sys::cef_drag_operations_mask_t_DRAG_OPERATION_EVERY;
-    }
-}
+#[cfg(target_os = "windows")]
+type CefCursorInternal = cef_sys::HCURSOR;
+#[cfg(not(target_os = "windows"))]
+type CefCursorInternal = ::std::os::raw::c_ulong;
 
 pub trait RenderHandler {
     //get_accessibility_handler
@@ -270,7 +241,7 @@ impl<T: RenderHandler> RenderHandlerWrapper<T> {
     extern "C" fn on_cursor_change(
         _client: *mut cef_render_handler_t,
         _browser: *mut cef_browser_t,
-        _cursor: ::std::os::raw::c_ulong,
+        _cursor: CefCursorInternal,
         _type_: cef_cursor_type_t,
         _custom_cursor_info: *const cef_cursor_info_t,
     ) {
@@ -296,7 +267,7 @@ impl<T: RenderHandler> RenderHandlerWrapper<T> {
     ) {
         let client = Self::from_ptr(client);
         let browser = Browser::from(browser, false);
-        let operation = DragOperationsMask::from_bits_truncate(operation);
+        let operation = DragOperationsMask::from(operation);
 
         client.internal.update_drag_cursor(&browser, operation);
     }

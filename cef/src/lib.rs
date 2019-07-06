@@ -1,4 +1,5 @@
 #![feature(non_exhaustive)]
+#![feature(type_alias_enum_variants)]
 
 extern crate cef_sys;
 
@@ -18,8 +19,6 @@ pub use browser::*;
 pub use client::*;
 pub use frame::*;
 pub use settings::*;
-use std::ffi::CString;
-use std::os::raw::c_char;
 use std::ptr::null_mut;
 use std::sync::Arc;
 pub use thread::*;
@@ -30,42 +29,50 @@ pub(crate) trait ToCef<T> {
     fn to_cef(&self) -> *mut T;
 }
 
-pub fn execute_process<TApp: App>(
-    args: &[String],
-    application: &Arc<TApp>,
-    //    windows_sandbox_info: *mut ::std::os::raw::c_void,
-) -> i32 {
-    let args: Vec<CString> = args
+#[cfg(target_os = "windows")]
+pub type CefArgs<'a> = cef_sys::HINSTANCE;
+#[cfg(target_os = "windows")]
+fn args_to_cef(raw: CefArgs)-> cef_sys::_cef_main_args_t {
+    cef_sys::_cef_main_args_t {
+        instance: raw
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+pub type CefArgs<'a> = &'a [String];
+#[cfg(not(target_os = "windows"))]
+fn args_to_cef(raw: CefArgs)-> cef_sys::_cef_main_args_t {
+    use std::ffi::CString;
+    use std::os::raw::c_char;
+
+    let args: Vec<CString> = raw
         .iter()
         .map(|x| CString::new(x.as_str()).unwrap())
         .collect();
     let mut args2: Vec<*mut c_char> = args.iter().map(|x| x.as_ptr() as *mut _).collect();
-    let args3 = cef_sys::_cef_main_args_t {
+    cef_sys::_cef_main_args_t {
         argc: args2.len() as i32,
         argv: args2.as_mut_ptr(),
-    };
+    }
+}
 
-    unsafe { cef_sys::cef_execute_process(&args3, application.to_cef(), null_mut()) }
+
+pub fn execute_process<TApp: App>(
+    args: CefArgs,
+    application: &Arc<TApp>,
+    //    windows_sandbox_info: *mut ::std::os::raw::c_void,
+) -> i32 {
+    unsafe { cef_sys::cef_execute_process(&args_to_cef(args), application.to_cef(), null_mut()) }
 }
 
 pub fn initialize<TApp: App>(
-    args: &[String],
+    args: CefArgs,
     settings: Settings,
     application: &Arc<TApp>,
     //    application: *mut cef_sys::cef_app_t,
     //    windows_sandbox_info: *mut ::std::os::raw::c_void,
 ) -> ::std::os::raw::c_int {
-    let args: Vec<CString> = args
-        .iter()
-        .map(|x| CString::new(x.as_str()).unwrap())
-        .collect();
-    let mut args2: Vec<*mut c_char> = args.iter().map(|x| x.as_ptr() as *mut _).collect();
-    let args3 = cef_sys::_cef_main_args_t {
-        argc: args2.len() as i32,
-        argv: args2.as_mut_ptr(),
-    };
-
-    unsafe { cef_sys::cef_initialize(&args3, &settings.to_cef(), application.to_cef(), null_mut()) }
+    unsafe { cef_sys::cef_initialize(&args_to_cef(args), &settings.to_cef(), application.to_cef(), null_mut()) }
 }
 
 pub fn create_browser_sync<TClient: Client>(
