@@ -45,7 +45,7 @@ pub trait Client {
 }
 
 struct ClientWrapper<T: Client> {
-    base: cef_client_t,
+    _base: cef_client_t,
     internal: Arc<T>,
 }
 unsafe impl<T: Client> WrapperFor<cef_client_t> for ClientWrapper<T> {}
@@ -142,7 +142,7 @@ impl<T: Client> ClientWrapper<T> {
 impl<T: Client> ToCef<cef_client_t> for Arc<T> {
     fn to_cef(&self) -> *mut cef_client_t {
         wrap_ptr(|base| ClientWrapper {
-            base: cef_client_t {
+            _base: cef_client_t {
                 base,
                 get_audio_handler: Some(ClientWrapper::<T>::get_audio_handler),
                 get_context_menu_handler: Some(ClientWrapper::<T>::get_context_menu_handler),

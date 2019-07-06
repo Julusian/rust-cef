@@ -115,7 +115,7 @@ impl RenderHandler for () {
 }
 
 struct RenderHandlerWrapper<T: RenderHandler> {
-    base: cef_render_handler_t,
+    _base: cef_render_handler_t,
     internal: Arc<T>,
 }
 unsafe impl<T: RenderHandler> WrapperFor<cef_render_handler_t> for RenderHandlerWrapper<T> {}
@@ -366,7 +366,7 @@ impl<T: RenderHandler> RenderHandlerWrapper<T> {
 impl<T: RenderHandler> ToCef<cef_render_handler_t> for Arc<T> {
     fn to_cef(&self) -> *mut cef_render_handler_t {
         wrap_ptr(|base| RenderHandlerWrapper {
-            base: cef_render_handler_t {
+            _base: cef_render_handler_t {
                 base,
                 get_accessibility_handler: Some(
                     RenderHandlerWrapper::<T>::get_accessibility_handler,

@@ -2,10 +2,8 @@ use crate::ptr::RefCounterGuard;
 use crate::types::string::CefString;
 use crate::Browser;
 use cef_sys::{
-    _cef_urlrequest_client_t, _cef_urlrequest_t, cef_browser_host_t, cef_browser_t,
-    cef_domvisitor_t, cef_frame_t, cef_process_id_t, cef_process_message_t, cef_request_t,
-    cef_string_list_t, cef_string_t, cef_string_userfree_t, cef_string_visitor_t, cef_v8context_t,
-    int64,
+    _cef_urlrequest_client_t, _cef_urlrequest_t, cef_domvisitor_t, cef_frame_t, cef_process_id_t,
+    cef_process_message_t, cef_request_t, cef_string_visitor_t, cef_v8context_t,
 };
 use std::ptr::null_mut;
 

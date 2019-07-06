@@ -1,10 +1,7 @@
 use crate::ptr::RefCounterGuard;
 use crate::types::string::CefString;
-use cef_sys::{
-    cef_command_line_t,
-};
+use cef_sys::cef_command_line_t;
 use std::collections::HashMap;
-
 
 #[derive(Clone)]
 pub struct CommandLine {

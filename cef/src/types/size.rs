@@ -1,6 +1,5 @@
 use cef_sys::cef_size_t;
 
-
 #[derive(Clone, Debug)]
 pub struct CefSize {
     pub width: i32,

@@ -29,7 +29,7 @@ pub trait LifeSpanHandler {
 impl LifeSpanHandler for () {}
 
 struct LifeSpanHandlerWrapper<T: LifeSpanHandler> {
-    base: cef_life_span_handler_t,
+    _base: cef_life_span_handler_t,
     internal: Arc<T>,
 }
 unsafe impl<T: LifeSpanHandler> WrapperFor<cef_life_span_handler_t> for LifeSpanHandlerWrapper<T> {}
@@ -106,7 +106,7 @@ impl<T: LifeSpanHandler> LifeSpanHandlerWrapper<T> {
 impl<T: LifeSpanHandler> ToCef<cef_life_span_handler_t> for Arc<T> {
     fn to_cef(&self) -> *mut cef_life_span_handler_t {
         wrap_ptr(|base| LifeSpanHandlerWrapper {
-            base: cef_life_span_handler_t {
+            _base: cef_life_span_handler_t {
                 base,
                 on_before_popup: Some(LifeSpanHandlerWrapper::<T>::on_before_popup),
                 on_after_created: Some(LifeSpanHandlerWrapper::<T>::on_after_created),

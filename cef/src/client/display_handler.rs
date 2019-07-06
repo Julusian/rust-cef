@@ -2,9 +2,8 @@ use crate::ptr::{wrap_ptr, BaseRefCountedExt, WrapperFor};
 use crate::types::string::CefString;
 use crate::{Browser, CefSize, Frame, LogSeverity, ToCef};
 use cef_sys::{
-    cef_browser_settings_t, cef_browser_t, cef_client_t, cef_dictionary_value_t,
-    cef_display_handler_t, cef_frame_t, cef_log_severity_t, cef_popup_features_t, cef_size_t,
-    cef_string_list_t, cef_string_t, cef_window_info_t, cef_window_open_disposition_t,
+    cef_browser_t, cef_display_handler_t, cef_frame_t, cef_log_severity_t, cef_size_t,
+    cef_string_list_t, cef_string_t,
 };
 use std::sync::Arc;
 
@@ -35,7 +34,7 @@ pub trait DisplayHandler {
 impl DisplayHandler for () {}
 
 struct DisplayHandlerWrapper<T: DisplayHandler> {
-    base: cef_display_handler_t,
+    _base: cef_display_handler_t,
     internal: Arc<T>,
 }
 unsafe impl<T: DisplayHandler> WrapperFor<cef_display_handler_t> for DisplayHandlerWrapper<T> {}
@@ -137,7 +136,7 @@ impl<T: DisplayHandler> DisplayHandlerWrapper<T> {
     ) -> ::std::os::raw::c_int {
         let handler = Self::from_ptr(handler);
         let browser = Browser::from(browser, false);
-        let level = unsafe { std::mem::transmute(level) };
+        let level = std::mem::transmute(level);
         let message = CefString::from_cef(message);
         let source = CefString::from_cef(source);
 
@@ -178,7 +177,7 @@ impl<T: DisplayHandler> DisplayHandlerWrapper<T> {
 impl<T: DisplayHandler> ToCef<cef_display_handler_t> for Arc<T> {
     fn to_cef(&self) -> *mut cef_display_handler_t {
         wrap_ptr(|base| DisplayHandlerWrapper {
-            base: cef_display_handler_t {
+            _base: cef_display_handler_t {
                 base,
                 on_address_change: Some(DisplayHandlerWrapper::<T>::on_address_change),
                 on_title_change: Some(DisplayHandlerWrapper::<T>::on_title_change),
