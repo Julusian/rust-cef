@@ -56,9 +56,12 @@ impl cef::Client for MyClient {
 fn main() {
     let app = Arc::new(MyApp {});
 
-    if cef::execute_process(&app) > 0 {
-        // It was a worker process, so stop here
-        return;
+    {
+        let result_code = cef::execute_process(&app);
+        if result_code >= 0 {
+            // It was a worker process, so stop here
+            std::process::exit(result_code as i32);
+        }
     }
 
     let mut settings = Settings::default();
