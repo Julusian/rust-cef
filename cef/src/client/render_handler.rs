@@ -1,6 +1,9 @@
 use crate::ptr::{wrap_ptr, BaseRefCountedExt, WrapperFor};
 use crate::types::string::CefString;
-use crate::{Browser, CefPoint, CefRange, CefRect, ToCef, PaintElementType, TextInputMode, DragOperationsMask};
+use crate::{
+    Browser, CefCursorInternal, CefPoint, CefRange, CefRect, DragOperationsMask, PaintElementType,
+    TextInputMode, ToCef,
+};
 use cef_sys::{
     cef_accessibility_handler_t, cef_browser_t, cef_cursor_info_t, cef_cursor_type_t,
     cef_drag_data_t, cef_drag_operations_mask_t, cef_paint_element_type_t, cef_range_t, cef_rect_t,
@@ -9,12 +12,6 @@ use cef_sys::{
 use std::ptr::null_mut;
 use std::slice::from_raw_parts;
 use std::sync::Arc;
-
-
-#[cfg(target_os = "windows")]
-type CefCursorInternal = cef_sys::HCURSOR;
-#[cfg(not(target_os = "windows"))]
-type CefCursorInternal = ::std::os::raw::c_ulong;
 
 pub trait RenderHandler {
     //get_accessibility_handler

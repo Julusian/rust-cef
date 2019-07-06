@@ -1,20 +1,26 @@
 use crate::string::CefString;
-use cef_sys::{cef_browser_settings_t, cef_state_t, cef_window_info_t};
-use std::ptr::null_mut;
+use cef_sys::{cef_browser_settings_t, cef_state_t};
 
 #[cfg(target_os = "windows")]
-pub type WindowHandle = cef_sys::HWND;
-#[cfg(not(target_os = "windows"))]
-pub type WindowHandle = u64;
+mod platform {
+    use std::ptr::null_mut;
 
-#[cfg(target_os = "windows")]
-pub fn window_handle_default() -> WindowHandle {
-    null_mut()
+    pub type WindowHandle = cef_sys::HWND;
+
+    pub(crate) fn window_handle_default() -> WindowHandle {
+        null_mut()
+    }
 }
+
 #[cfg(not(target_os = "windows"))]
-pub fn window_handle_default() -> WindowHandle {
-    0
+mod platform {
+    pub type WindowHandle = u64;
+
+    pub(crate) fn window_handle_default() -> WindowHandle {
+        0
+    }
 }
+pub use platform::*;
 
 #[derive(Debug, Copy, Clone)]
 pub struct WindowInfo<'a> {
@@ -46,43 +52,6 @@ impl<'a> Default for WindowInfo<'a> {
 
             parent_window: window_handle_default(),
             window: window_handle_default(),
-        }
-    }
-}
-impl<'a> WindowInfo<'a> {
-    #[cfg(not(target_os = "windows"))]
-    pub(crate) fn to_cef(&self) -> cef_window_info_t {
-        cef_window_info_t {
-            window_name: CefString::convert_str_to_cef(self.window_name),
-            x: self.x,
-            y: self.y,
-            width: self.width,
-            height: self.height,
-            parent_window: self.parent_window,
-            windowless_rendering_enabled: self.windowless_rendering_enabled as i32,
-            shared_texture_enabled: self.shared_texture_enabled as i32,
-            external_begin_frame_enabled: self.external_begin_frame_enabled as i32,
-            window: self.window,
-        }
-    }
-    #[cfg(target_os = "windows")]
-    pub(crate) fn to_cef(&self) -> cef_window_info_t {
-        cef_window_info_t {
-            window_name: CefString::convert_str_to_cef(self.window_name),
-            x: self.x as i32,
-            y: self.y as i32,
-            width: self.width as i32,
-            height: self.height as i32,
-            parent_window: self.parent_window,
-            windowless_rendering_enabled: self.windowless_rendering_enabled as i32,
-            shared_texture_enabled: self.shared_texture_enabled as i32,
-            external_begin_frame_enabled: self.external_begin_frame_enabled as i32,
-            window: self.window,
-
-            // Windows only values
-            ex_style: 0,
-            style: 0,
-            menu: null_mut()
         }
     }
 }

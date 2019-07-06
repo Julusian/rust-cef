@@ -7,6 +7,7 @@ mod app;
 mod browser;
 mod client;
 mod frame;
+mod platform;
 mod ptr;
 mod settings;
 mod thread;
@@ -18,6 +19,7 @@ pub use app::*;
 pub use browser::*;
 pub use client::*;
 pub use frame::*;
+pub use platform::*;
 pub use settings::*;
 use std::ptr::null_mut;
 use std::sync::Arc;
@@ -28,70 +30,6 @@ pub use window::*;
 pub(crate) trait ToCef<T> {
     fn to_cef(&self) -> *mut T;
 }
-
-#[cfg(target_os = "windows")]
-mod platform {
-    use std::ptr::null_mut;
-
-    pub type CefArgs<'a> = cef_sys::HINSTANCE;
-
-    pub(crate) struct CefMainArgsWrapper {
-        pub cef: cef_sys::_cef_main_args_t,
-    }
-
-    pub(crate) fn args_to_cef(raw: CefArgs) -> CefMainArgsWrapper {
-        CefMainArgsWrapper {
-            cef: cef_sys::_cef_main_args_t { instance: raw },
-        }
-    }
-
-    pub(crate) fn default_args() -> CefMainArgsWrapper {
-        args_to_cef(null_mut())
-    }
-}
-
-#[cfg(not(target_os = "windows"))]
-mod platform {
-    use std::ffi::CString;
-    use std::os::raw::c_char;
-    use std::ptr::null_mut;
-
-    pub type CefArgs<'a> = &'a [String];
-
-    pub(crate) struct CefMainArgsWrapper {
-        pub cef: cef_sys::_cef_main_args_t,
-        pub keepalive: Vec<CString>,
-        pub keepalive2: Vec<*mut c_char>,
-    }
-
-    pub(crate) fn args_to_cef(raw: CefArgs) -> CefMainArgsWrapper {
-        // TODO - won't this cause the types to be freed before the pointers?
-        let args = raw
-            .iter()
-            .map(|x| CString::new(x.as_str()).unwrap())
-            .collect::<Vec<CString>>();
-        let mut res = CefMainArgsWrapper {
-            cef: cef_sys::_cef_main_args_t {
-                argc: 0,
-                argv: null_mut(),
-            },
-            keepalive: args,
-            keepalive2: Vec::new(),
-        };
-
-        res.keepalive2 = res.keepalive.iter().map(|x| x.as_ptr() as *mut _).collect();
-        res.cef.argc = res.keepalive2.len() as i32;
-        res.cef.argv = res.keepalive2.as_mut_ptr();
-
-        res
-    }
-
-    pub(crate) fn default_args() -> CefMainArgsWrapper {
-        args_to_cef(&std::env::args().collect::<Vec<String>>())
-    }
-}
-
-pub use platform::*;
 
 pub fn execute_process_with_args<TApp: App>(
     args: CefArgs,
