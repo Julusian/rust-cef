@@ -1,6 +1,5 @@
-use std::io::ErrorKind;
 use std::path::Path;
-use std::{env, fs};
+use std::env;
 
 fn choose_source_dir() -> Option<String> {
     // Try a global path
