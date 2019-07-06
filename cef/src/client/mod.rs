@@ -1,5 +1,9 @@
+mod display_handler;
+mod life_span_handler;
 mod render_handler;
 
+pub use display_handler::*;
+pub use life_span_handler::*;
 pub use render_handler::*;
 
 use crate::ptr::{wrap_ptr, BaseRefCountedExt, WrapperFor};
@@ -21,12 +25,20 @@ impl AudioHandler for () {}
 
 pub trait Client {
     type OutAudioHandler: AudioHandler;
+    type OutDisplayHandler: DisplayHandler;
+    type OutLifeSpanHandler: LifeSpanHandler;
     type OutRenderHandler: RenderHandler;
 
+    // TODO - fill out
     fn get_audio_handler(&self) -> Option<Arc<Self::OutAudioHandler>> {
         None
     }
-    // TODO - fill out
+    fn get_display_handler(&self) -> Option<Arc<Self::OutDisplayHandler>> {
+        None
+    }
+    fn get_life_span_handler(&self) -> Option<Arc<Self::OutLifeSpanHandler>> {
+        None
+    }
     fn get_render_handler(&self) -> Option<Arc<Self::OutRenderHandler>> {
         None
     }
@@ -58,8 +70,13 @@ impl<T: Client> ClientWrapper<T> {
         null_mut()
     }
 
-    extern "C" fn get_display_handler(_client: *mut cef_client_t) -> *mut cef_display_handler_t {
-        null_mut()
+    extern "C" fn get_display_handler(client: *mut cef_client_t) -> *mut cef_display_handler_t {
+        let client = Self::from_ptr(client);
+        if let Some(handler) = client.internal.get_display_handler() {
+            handler.to_cef()
+        } else {
+            null_mut()
+        }
     }
 
     extern "C" fn get_download_handler(_client: *mut cef_client_t) -> *mut cef_download_handler_t {
@@ -86,10 +103,13 @@ impl<T: Client> ClientWrapper<T> {
         null_mut()
     }
 
-    extern "C" fn get_life_span_handler(
-        _client: *mut cef_client_t,
-    ) -> *mut cef_life_span_handler_t {
-        null_mut()
+    extern "C" fn get_life_span_handler(client: *mut cef_client_t) -> *mut cef_life_span_handler_t {
+        let client = Self::from_ptr(client);
+        if let Some(handler) = client.internal.get_life_span_handler() {
+            handler.to_cef()
+        } else {
+            null_mut()
+        }
     }
 
     extern "C" fn get_load_handler(_client: *mut cef_client_t) -> *mut cef_load_handler_t {

@@ -43,6 +43,8 @@ struct MyClient {
 }
 impl cef::Client for MyClient {
     type OutAudioHandler = ();
+    type OutDisplayHandler = ();
+    type OutLifeSpanHandler = ();
     type OutRenderHandler = MyRenderHandler;
 
     fn get_render_handler(&self) -> Option<Arc<Self::OutRenderHandler>> {

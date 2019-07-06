@@ -1,4 +1,5 @@
 use crate::string::CefString;
+use crate::LogSeverity;
 use cef_sys::cef_settings_t;
 use std::os::raw::c_int;
 
@@ -20,7 +21,7 @@ pub struct Settings<'a> {
     pub product_version: Option<&'a str>,
     pub locale: Option<&'a str>,
     pub log_file: Option<&'a str>,
-    pub log_severity: u32, // TODO - enum
+    pub log_severity: LogSeverity,
     pub javascript_flags: Option<&'a str>,
     pub resources_dir_path: Option<&'a str>,
     pub locales_dir_path: Option<&'a str>,
@@ -52,7 +53,7 @@ impl<'a> Default for Settings<'a> {
             product_version: None,
             locale: None,
             log_file: None,
-            log_severity: Default::default(),
+            log_severity: LogSeverity::Default,
             javascript_flags: None,
             resources_dir_path: None,
             locales_dir_path: None,
@@ -87,7 +88,7 @@ impl<'a> Settings<'a> {
             product_version: CefString::convert_str_to_cef(self.product_version),
             locale: CefString::convert_str_to_cef(self.locale),
             log_file: CefString::convert_str_to_cef(self.log_file),
-            log_severity: self.log_severity,
+            log_severity: self.log_severity as u32,
             javascript_flags: CefString::convert_str_to_cef(self.javascript_flags),
             resources_dir_path: CefString::convert_str_to_cef(self.resources_dir_path),
             locales_dir_path: CefString::convert_str_to_cef(self.locales_dir_path),
