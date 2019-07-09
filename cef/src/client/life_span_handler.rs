@@ -2,9 +2,8 @@ use crate::ptr::{wrap_ptr, BaseRefCountedExt, WrapperFor};
 use crate::types::string::CefString;
 use crate::{Browser, Frame, ToCef};
 use cef_sys::{
-    _cef_popup_features_t, cef_browser_settings_t, cef_browser_t, cef_client_t,
-    cef_dictionary_value_t, cef_frame_t, cef_life_span_handler_t, cef_string_t, cef_window_info_t,
-    cef_window_open_disposition_t,
+    _cef_popup_features_t, cef_browser_settings_t, cef_browser_t, cef_client_t, cef_frame_t,
+    cef_life_span_handler_t, cef_string_t, cef_window_info_t, cef_window_open_disposition_t,
 };
 use std::sync::Arc;
 
@@ -52,7 +51,6 @@ impl<T: LifeSpanHandler> LifeSpanHandlerWrapper<T> {
         _window_info: *mut cef_window_info_t,
         _client: *mut *mut cef_client_t,
         _settings: *mut cef_browser_settings_t,
-        _extra_info: *mut *mut cef_dictionary_value_t,
         _no_javascript_access: *mut ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int {
         let handler = Self::from_ptr(handler);

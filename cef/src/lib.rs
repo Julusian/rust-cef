@@ -1,5 +1,4 @@
 #![feature(non_exhaustive)]
-#![feature(type_alias_enum_variants)]
 
 extern crate cef_sys;
 
@@ -96,7 +95,6 @@ pub fn create_browser_sync<TClient: Client>(
             client.to_cef(),
             &CefString::from_str(url).into_cef(),
             &settings.to_cef(),
-            null_mut(),
             null_mut(),
         )
     };

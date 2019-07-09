@@ -1,5 +1,4 @@
 #![feature(async_await)]
-#![feature(type_alias_enum_variants)]
 
 use cef::{
     create_browser_sync, Browser, BrowserSettings, CefRect, PaintElementType, RenderHandler,

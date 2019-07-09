@@ -13,7 +13,6 @@ pub struct Settings<'a> {
     pub windowless_rendering_enabled: bool,
     pub command_line_args_disabled: bool,
     pub cache_path: Option<&'a str>,
-    pub root_cache_path: Option<&'a str>,
     pub user_data_path: Option<&'a str>,
     pub persist_session_cookies: bool,
     pub persist_user_preferences: bool,
@@ -32,7 +31,6 @@ pub struct Settings<'a> {
     pub enable_net_security_expiration: bool,
     pub background_color: u32,
     pub accept_language_list: Option<&'a str>,
-    pub application_client_id_for_file_scanning: Option<&'a str>,
 }
 impl<'a> Default for Settings<'a> {
     fn default() -> Settings<'a> {
@@ -45,7 +43,6 @@ impl<'a> Default for Settings<'a> {
             windowless_rendering_enabled: false,
             command_line_args_disabled: false,
             cache_path: None,
-            root_cache_path: None,
             user_data_path: None,
             persist_session_cookies: false,
             persist_user_preferences: false,
@@ -64,7 +61,6 @@ impl<'a> Default for Settings<'a> {
             enable_net_security_expiration: false,
             background_color: 0x0000_0000,
             accept_language_list: None,
-            application_client_id_for_file_scanning: None,
         }
     }
 }
@@ -80,7 +76,6 @@ impl<'a> Settings<'a> {
             windowless_rendering_enabled: self.windowless_rendering_enabled as c_int,
             command_line_args_disabled: self.command_line_args_disabled as c_int,
             cache_path: CefString::convert_str_to_cef(self.cache_path),
-            root_cache_path: CefString::convert_str_to_cef(self.root_cache_path),
             user_data_path: CefString::convert_str_to_cef(self.user_data_path),
             persist_session_cookies: self.persist_session_cookies as c_int,
             persist_user_preferences: self.persist_user_preferences as c_int,
@@ -99,9 +94,6 @@ impl<'a> Settings<'a> {
             enable_net_security_expiration: self.enable_net_security_expiration as c_int,
             background_color: self.background_color,
             accept_language_list: CefString::convert_str_to_cef(self.accept_language_list),
-            application_client_id_for_file_scanning: CefString::convert_str_to_cef(
-                self.application_client_id_for_file_scanning,
-            ),
         }
     }
 }

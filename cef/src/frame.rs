@@ -2,8 +2,8 @@ use crate::ptr::RefCounterGuard;
 use crate::types::string::CefString;
 use crate::Browser;
 use cef_sys::{
-    _cef_urlrequest_client_t, _cef_urlrequest_t, cef_domvisitor_t, cef_frame_t, cef_process_id_t,
-    cef_process_message_t, cef_request_t, cef_string_visitor_t, cef_v8context_t,
+    cef_domvisitor_t, cef_frame_t, cef_process_id_t, cef_process_message_t, cef_request_t,
+    cef_string_visitor_t, cef_v8context_t,
 };
 use std::ptr::null_mut;
 
@@ -191,15 +191,6 @@ impl Frame {
 
     pub fn visit_dom(&self, _visitor: *mut cef_domvisitor_t) {
         // TODO
-    }
-
-    pub fn create_urlrequest(
-        &self,
-        _request: *mut cef_request_t,
-        _client: *mut _cef_urlrequest_client_t,
-    ) -> *mut _cef_urlrequest_t {
-        // TODO
-        null_mut()
     }
 
     pub fn send_process_message(

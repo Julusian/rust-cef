@@ -11,9 +11,9 @@ use crate::ToCef;
 use cef_sys::{
     cef_audio_handler_t, cef_browser_t, cef_client_t, cef_context_menu_handler_t,
     cef_dialog_handler_t, cef_display_handler_t, cef_download_handler_t, cef_drag_handler_t,
-    cef_find_handler_t, cef_focus_handler_t, cef_frame_t, cef_jsdialog_handler_t,
-    cef_keyboard_handler_t, cef_life_span_handler_t, cef_load_handler_t, cef_process_id_t,
-    cef_process_message_t, cef_render_handler_t, cef_request_handler_t,
+    cef_find_handler_t, cef_focus_handler_t, cef_jsdialog_handler_t, cef_keyboard_handler_t,
+    cef_life_span_handler_t, cef_load_handler_t, cef_process_id_t, cef_process_message_t,
+    cef_render_handler_t, cef_request_handler_t,
 };
 use std::ptr::null_mut;
 use std::sync::Arc;
@@ -132,7 +132,6 @@ impl<T: Client> ClientWrapper<T> {
     extern "C" fn on_process_message_received(
         _client: *mut cef_client_t,
         _browser: *mut cef_browser_t,
-        _frame: *mut cef_frame_t,
         _source_process: cef_process_id_t,
         _message: *mut cef_process_message_t,
     ) -> ::std::os::raw::c_int {
