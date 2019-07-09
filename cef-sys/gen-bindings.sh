@@ -17,4 +17,4 @@ bindgen wrapper.h -o $outfile \
     --whitelist-type cef_.* \
     --whitelist-function cef_.* \
     --bitfield-enum .*_mask_t \
-    -- -I vendor/cef
+    -- -I $CEF_ROOT
