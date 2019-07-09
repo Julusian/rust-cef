@@ -1,8 +1,10 @@
+mod browser_process_handler;
 mod command_line;
 
 use crate::ptr::{wrap_ptr, BaseRefCountedExt, WrapperFor};
 use crate::string::CefString;
 use crate::ToCef;
+pub use browser_process_handler::*;
 use cef_sys::{
     cef_app_t, cef_browser_process_handler_t, cef_command_line_t, cef_render_process_handler_t,
     cef_resource_bundle_handler_t, cef_scheme_registrar_t, cef_string_t,
@@ -12,11 +14,15 @@ use std::ptr::null_mut;
 use std::sync::Arc;
 
 pub trait App {
+    type OutBrowserProcessHandler: BrowserProcessHandler;
+
     fn on_before_command_line_processing(&self, _process_type: &str, _command_line: &CommandLine) {}
     // TODO - finish implementing
     //    fn on_register_custom_schemes(&self) {}
     //    fn get_resource_bundle_handler(&self) {}
-    //    fn get_browser_process_handler(&self) {}
+    fn get_browser_process_handler(&self) -> Option<Arc<Self::OutBrowserProcessHandler>> {
+        None
+    }
     //    fn get_render_process_handler(&self) {}
 }
 
@@ -59,12 +65,14 @@ impl<TApp: App> AppWrapper<TApp> {
         null_mut()
     }
     extern "C" fn get_browser_process_handler(
-        _app: *mut cef_app_t,
+        app: *mut cef_app_t,
     ) -> *mut cef_browser_process_handler_t {
-        //        let app = Self::from_ptr(app);
-
-        //        app.internal.get_browser_process_handler();
-        null_mut()
+        let app = Self::from_ptr(app);
+        if let Some(handler) = app.internal.get_browser_process_handler() {
+            handler.to_cef()
+        } else {
+            null_mut()
+        }
     }
     extern "C" fn get_render_process_handler(
         _app: *mut cef_app_t,

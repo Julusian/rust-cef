@@ -10,7 +10,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 struct MyApp {}
-impl cef::App for MyApp {}
+impl cef::App for MyApp {
+    type OutBrowserProcessHandler = ();
+}
 
 struct MyRenderHandler {}
 impl RenderHandler for MyRenderHandler {

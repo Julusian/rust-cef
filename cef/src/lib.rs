@@ -87,8 +87,10 @@ pub fn create_browser_sync<TClient: Client>(
     client: &Arc<TClient>,
     url: &str,
     settings: BrowserSettings,
-) {
-    let _res = unsafe {
+) /*-> Browser */
+{
+    // TODO - calling this appears to leak a ref somewhere
+    let res = unsafe {
         cef_sys::cef_browser_host_create_browser_sync(
             &info.to_cef(),
             client.to_cef(),
@@ -98,6 +100,7 @@ pub fn create_browser_sync<TClient: Client>(
             null_mut(),
         )
     };
+    //    Browser::from(res, true)
 }
 
 pub fn shutdown() {

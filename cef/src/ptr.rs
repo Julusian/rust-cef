@@ -5,6 +5,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 pub(crate) unsafe trait WrapperFor<T> {}
 
+unsafe impl<T> Send for RefCounterGuard<T> {}
+unsafe impl<T> Sync for RefCounterGuard<T> {}
 pub(crate) struct RefCounterGuard<T> {
     // TODO - test this type
     base: *mut cef_base_ref_counted_t,

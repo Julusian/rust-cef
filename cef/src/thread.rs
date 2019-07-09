@@ -1,7 +1,6 @@
 use crate::ptr::{wrap_ptr, BaseRefCountedExt, WrapperFor};
-use cef_sys::{cef_currently_on, cef_post_task, cef_task_t};
 use crate::ThreadId;
-
+use cef_sys::{cef_currently_on, cef_post_task, cef_task_t};
 
 pub fn currently_on(id: ThreadId) -> bool {
     unsafe { cef_currently_on(id) > 0 }
