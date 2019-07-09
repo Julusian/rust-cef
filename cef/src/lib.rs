@@ -4,6 +4,7 @@ extern crate cef_sys;
 
 mod app;
 mod browser;
+mod browser_host;
 mod client;
 mod frame;
 mod platform;
@@ -16,6 +17,7 @@ mod window;
 use crate::types::string::CefString;
 pub use app::*;
 pub use browser::*;
+pub use browser_host::*;
 pub use client::*;
 pub use frame::*;
 pub use platform::*;

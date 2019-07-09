@@ -1,6 +1,6 @@
 use crate::ptr::RefCounterGuard;
 use crate::types::string::CefString;
-use crate::Frame;
+use crate::{BrowserHost, Frame};
 use cef_sys::{cef_browser_host_t, cef_browser_t};
 use std::ptr::null_mut;
 
@@ -16,11 +16,11 @@ impl Browser {
         }
     }
 
-    pub fn get_host(&self) -> *mut cef_browser_host_t {
+    pub fn get_host(&self) -> Option<BrowserHost> {
         if let Some(func) = self.ptr.as_ref().get_host {
-            unsafe { func(self.ptr.get()) }
+            Some(BrowserHost::from(unsafe { func(self.ptr.get()) }, true))
         } else {
-            null_mut()
+            None
         }
     }
 
